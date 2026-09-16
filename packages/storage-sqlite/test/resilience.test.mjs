@@ -36,19 +36,20 @@ for (const mode of ['before', 'after']) {
   });
 }
 
-test('two independent processes racing claim produce exactly one owner', { timeout: 10000 }, async t => {
+test('six independent processes racing claim produce exactly one owner', { timeout: 10000 }, async t => {
   const path = pathFor(t);
   const store = createNodeSQLiteStore(path, clock, limits);
   await store.open(1);
   await store.accept(proposeAcceptance(input(), 1000, 'accept', limits));
-  const workers = [0, 1].map(() => fork(new URL('./worker.mjs', import.meta.url), [path, 'claim'], { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] }));
+  const workers = Array.from({ length: 6 }, () => fork(new URL('./worker.mjs', import.meta.url), [path, 'claim'], { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] }));
   t.after(() => workers.forEach(worker => worker.kill()));
   await Promise.all(workers.map(worker => once(worker, 'message')));
   const results = workers.map(worker => once(worker, 'message'));
   workers.forEach(worker => worker.send('go'));
   const outcomes = (await Promise.all(results)).map(([result]) => result);
-  assert.deepEqual(outcomes.map(result => result.kind).sort(), ['COMMITTED', 'CONFLICT']);
-  assert.equal(outcomes.find(result => result.kind === 'CONFLICT').code, 'RevisionConflict');
+  assert.equal(outcomes.filter(result => result.kind === 'COMMITTED').length, 1);
+  assert.equal(outcomes.filter(result => result.kind === 'CONFLICT').length, 5);
+  assert.ok(outcomes.filter(result => result.kind === 'CONFLICT').every(result => result.code === 'RevisionConflict'));
   assert.equal((await store.get(input())).value.fence, 1);
   await store.close();
 });

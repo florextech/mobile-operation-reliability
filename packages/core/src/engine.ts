@@ -16,6 +16,8 @@ export interface OperationEngineOptions {
   readonly limits: PayloadLimits;
   readonly identifiers: EngineIdentifiers;
   readonly leaseDurationMs: number;
+  /** Renew an owned lease this long before expiry; must be below leaseDurationMs. */
+  readonly leaseRenewalLeadMs?: number;
   readonly isDefinitionReady: (operation: Operation) => boolean;
   readonly areCredentialsReady: (operation: Operation) => boolean;
   /** A deterministic sample, normally supplied by the runtime composition. */
@@ -48,6 +50,10 @@ export class OperationEngine {
   private readonly options: OperationEngineOptions;
 
   constructor(options: OperationEngineOptions) {
+    const lead = options.leaseRenewalLeadMs ?? Math.floor(options.leaseDurationMs / 2);
+    if (!Number.isSafeInteger(options.leaseDurationMs) || options.leaseDurationMs < 1 || !Number.isSafeInteger(lead) || lead < 0 || lead >= options.leaseDurationMs) {
+      throw new RangeError('Invalid lease configuration');
+    }
     this.options = options;
   }
 
@@ -74,13 +80,16 @@ export class OperationEngine {
   }
 
   async runOnce(scope: OperationScope, limit = 100): Promise<void> {
-    if (this.options.network?.getSnapshot() === 'offline') return;
     const page = await this.options.storage.scanWork({ ...scope, cursor: null, limit });
     if (page.kind === 'ERROR') return;
-    for (const operation of page.value.items) await this.executeCandidate(operation);
+    for (const operation of page.value.items) {
+      if (operation.status === 'EXECUTING' || operation.status === 'VERIFYING') await this.maintainLease(operation);
+      else await this.executeCandidate(operation);
+    }
   }
 
   private async executeCandidate(operation: Operation): Promise<void> {
+    if (this.options.network?.getSnapshot() === 'offline') return;
     if (operation.status !== 'ACCEPTED' || operation.schedule?.kind !== 'execution' || operation.schedule.at > this.options.clock.wallNow()) return;
     const claim = await this.options.storage.claim({
       key: keyFor(operation),
@@ -109,6 +118,28 @@ export class OperationEngine {
       },
     });
     if (committed.kind === 'COMMITTED') this.publish(committed.operation);
+  }
+
+  private async maintainLease(operation: Extract<Operation, { readonly status: 'EXECUTING' | 'VERIFYING' }>): Promise<void> {
+    const now = this.options.clock.wallNow();
+    if (now >= operation.lease.expiresAt) {
+      const recovered = await this.options.storage.recoverExpired({
+        key: keyFor(operation), context: contextFor(operation, this.options.identifiers.nextMutationId(), now),
+        command: { kind: 'RECOVER_EXPIRED', jitterSample: this.options.nextJitterSample() },
+      });
+      if (recovered.kind === 'COMMITTED') this.publish(recovered.operation);
+      return;
+    }
+    const lead = this.options.leaseRenewalLeadMs ?? Math.floor(this.options.leaseDurationMs / 2);
+    if (operation.lease.ownerId !== this.options.identifiers.ownerId || now < operation.lease.expiresAt - lead) return;
+    const renewed = await this.options.storage.renew({
+      key: keyFor(operation), context: contextFor(operation, this.options.identifiers.nextMutationId(), now),
+      command: {
+        kind: 'RENEW', ownership: { ownerId: operation.lease.ownerId, fence: operation.lease.fence, attemptId: operation.activeAttempt.id },
+        leaseDurationMs: this.options.leaseDurationMs,
+      },
+    });
+    if (renewed.kind === 'COMMITTED') this.publish(renewed.operation);
   }
 
   private async transportResult(operation: Extract<Operation, { readonly status: 'EXECUTING' }>): Promise<TransportResponse<ExecutionResult>> {

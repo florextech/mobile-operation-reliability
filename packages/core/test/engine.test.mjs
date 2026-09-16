@@ -20,6 +20,8 @@ class MemoryStorage {
   }
   async claim(request) { return this.mutate(request); }
   async commitTransition(request) { return this.mutate(request); }
+  async renew(request) { return this.mutate(request); }
+  async recoverExpired(request) { return this.mutate(request); }
   async mutate(request) {
     const operation = this.operations.get(request.key.id);
     try {
@@ -40,6 +42,17 @@ function createEngine(storage, transport, now = 1000, overrides = {}) {
 }
 function completed(context) {
   return { result: { kind: 'CONFIRMED_COMPLETED', evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'BACKEND', scope: 'OPERATION', observedAt: 1000, code: 'OK' }, result: { remoteId: context.operation.id } } };
+}
+
+async function reserve(storage, operation, ownerId = 'worker', now = 1000) {
+  return storage.claim({
+    key: operation,
+    context: { ...operation, mutationId: `claim-${ownerId}`, expectedRevision: operation.revision, now },
+    command: {
+      kind: 'CLAIM', action: 'execution', attemptId: `attempt-${ownerId}`, ownerId, leaseDurationMs: 1000,
+      readiness: { principalScope: operation.principalScope, targetScope: operation.targetScope, definitionVersion: operation.definitionVersion, credentialsReady: true, definitionReady: true, verifierAvailable: false, replayContractVersion: null, clockTrusted: true },
+    },
+  });
 }
 
 test('execute resolves after durable acceptance and before transport', async () => {
@@ -173,4 +186,44 @@ test('restart keeps durable retry schedule and does not run early', async () => 
   await createEngine(storage, dueTransport, 1010).runOnce({ principalScope: 'account-1', targetScope: 'production' });
   assert.equal(dueTransport.calls.length, 1);
   assert.equal((await storage.get(input())).value.status, 'COMPLETED');
+});
+
+test('two engines racing the same durable candidate invoke transport once', async () => {
+  const storage = new MemoryStorage();
+  const firstTransport = new FakeTransport(completed);
+  const secondTransport = new FakeTransport(completed);
+  const first = createEngine(storage, firstTransport, 1000, { identifiers: { ownerId: 'A', nextMutationId: () => 'a-mutation', nextAttemptId: () => 'a-attempt' } });
+  const second = createEngine(storage, secondTransport, 1000, { identifiers: { ownerId: 'B', nextMutationId: () => 'b-mutation', nextAttemptId: () => 'b-attempt' } });
+  await first.execute(input());
+  await Promise.all([first.runOnce({ principalScope: 'account-1', targetScope: 'production' }), second.runOnce({ principalScope: 'account-1', targetScope: 'production' })]);
+  assert.equal(firstTransport.calls.length + secondTransport.calls.length, 1);
+  assert.equal((await storage.get(input())).value.status, 'COMPLETED');
+});
+
+test('owner renews its lease before expiry without a fake state transition', async () => {
+  const storage = new MemoryStorage();
+  const admitted = createEngine(storage, new FakeTransport(completed), 1000);
+  const handle = await admitted.execute(input());
+  const active = await reserve(storage, (await handle.status()).value);
+  assert.equal(active.operation.lease.expiresAt, 2000);
+  const engine = createEngine(storage, new FakeTransport(completed), 1500);
+  await engine.runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  const renewed = (await handle.status()).value;
+  assert.equal(renewed.status, 'EXECUTING');
+  assert.equal(renewed.lease.expiresAt, 2500);
+  assert.equal(renewed.revision, 2);
+});
+
+test('expired lease recovers to UNKNOWN and a new worker does not replay it blindly', async () => {
+  const storage = new MemoryStorage();
+  const first = createEngine(storage, new FakeTransport(completed), 1000);
+  const handle = await first.execute(input());
+  await reserve(storage, (await handle.status()).value, 'A');
+  const transport = new FakeTransport(completed);
+  const recovery = createEngine(storage, transport, 2000, { identifiers: { ownerId: 'C', nextMutationId: () => 'recover', nextAttemptId: () => 'new-attempt' } });
+  await recovery.runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  const recovered = (await handle.status()).value;
+  assert.equal(recovered.status, 'UNKNOWN');
+  assert.equal(recovered.fence, 2);
+  assert.equal(transport.calls.length, 0);
 });
