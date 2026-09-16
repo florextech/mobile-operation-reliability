@@ -1,13 +1,31 @@
 {
   "name": "mobile-operation-reliability",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "FlorexTech Mobile Operation Reliability SDK",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "pnpm --filter @florextech/core build",
+    "test": "pnpm --filter @florextech/core test",
+    "typecheck": "pnpm --filter @florextech/core typecheck",
+    "lint": "eslint packages/core/src packages/core/test",
+    "check": "pnpm typecheck && pnpm lint && pnpm test",
+    "coverage": "pnpm --filter @florextech/core coverage && node scripts/normalize-lcov.mjs",
+    "sonar:up": "node scripts/sonar.mjs up",
+    "sonar:down": "node scripts/sonar.mjs down",
+    "sonar:scan": "pnpm typecheck && pnpm lint && pnpm coverage && node scripts/sonar.mjs scan",
+    "sonar:status": "node scripts/sonar.mjs status",
+    "security:code": "node scripts/semgrep.mjs",
+    "security:deps": "pnpm audit --audit-level low",
+    "security:check": "pnpm security:deps && pnpm security:code",
+    "quality:gate": "pnpm install --frozen-lockfile && pnpm sonar:up && pnpm security:check && pnpm sonar:scan && git diff --check && git diff --cached --check"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.11.0",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "c8": "^12.0.0",
+    "eslint": "^10.10.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.70.0"
+  }
 }

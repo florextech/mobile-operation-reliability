@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pre-commit Quality Gates"
+  short_description: "Valida Sonar, Semgrep, audit y checks antes del commit"
+  default_prompt: "Usa $pre-commit-quality-gates para verificar todos los gates del proyecto antes de crear el commit autorizado."

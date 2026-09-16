@@ -1,0 +1,22 @@
+{
+  "name": "@florextech/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "test": "pnpm build && node --test test/*.test.mjs",
+    "coverage": "pnpm build && c8 --all --src dist --include \"dist/**/*.js\" --include \"src/**/*.ts\" --reporter lcov --reporter text --reporter json-summary node --test test/*.test.mjs"
+  }
+}

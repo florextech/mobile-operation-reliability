@@ -1,0 +1,51 @@
+name: florextech-mor-sonar
+services:
+  db:
+    image: postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_DB: sonar
+      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD:?Run pnpm sonar:up to initialize local secrets}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar -d sonar"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  sonarqube:
+    image: sonarqube@sha256:aa7146fd72ef79ea8ca06315ca3121db9bb1c24a83ba5255e8df67b43dee6e04
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+      - sonar_logs:/opt/sonarqube/logs
+    ulimits:
+      nofile:
+        soft: 131072
+        hard: 131072
+  scanner:
+    platform: linux/amd64
+    image: sonarsource/sonar-scanner-cli@sha256:23ca0f137965d9dff2198074043fd48d386280bc5d0ccac8c8349cea4cf096a9
+    profiles: [analysis]
+    environment:
+      SONAR_HOST_URL: http://sonarqube:9000
+      SONAR_TOKEN: ${SONAR_TOKEN:-}
+    working_dir: /usr/src
+    volumes:
+      - .:/usr/src
+      - scanner_cache:/opt/sonar-scanner/.sonar/cache
+volumes:
+  postgres_data:
+  sonar_data:
+  sonar_extensions:
+  sonar_logs:
+  scanner_cache:
