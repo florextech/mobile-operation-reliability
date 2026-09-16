@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { OperationAcceptanceError, OperationEngine, OperationScheduler, OperationTerminalError, transition } from '../dist/index.js';
 import { FakeTransport } from '../dist/testing.js';
-import { input, limits } from './helpers.mjs';
+import { input, limits, policy } from './helpers.mjs';
 
 class MemoryStorage {
   constructor({ failAccept = false } = {}) { this.operations = new Map(); this.failAccept = failAccept; this.accepts = 0; }
@@ -22,6 +22,7 @@ class MemoryStorage {
   async commitTransition(request) { return this.mutate(request); }
   async renew(request) { return this.mutate(request); }
   async recoverExpired(request) { return this.mutate(request); }
+  async updateScheduling(request) { return this.mutate(request); }
   async mutate(request) {
     const operation = this.operations.get(request.key.id);
     try {
@@ -226,4 +227,69 @@ test('expired lease recovers to UNKNOWN and a new worker does not replay it blin
   assert.equal(recovered.status, 'UNKNOWN');
   assert.equal(recovered.fence, 2);
   assert.equal(transport.calls.length, 0);
+});
+
+async function makeUnknown(storage, operation = input()) {
+  const engine = createEngine(storage, new FakeTransport(async () => { throw new Error('response lost'); }), 1000);
+  const handle = await engine.execute(operation);
+  await engine.runOnce({ principalScope: operation.principalScope, targetScope: operation.targetScope });
+  return handle;
+}
+
+test('response loss followed by verification completes after restart', async () => {
+  const storage = new MemoryStorage();
+  const handle = await makeUnknown(storage);
+  assert.deepEqual((await handle.status()).value.schedule, { kind: 'verification', at: 1005 });
+  const transport = new FakeTransport(completed, context => ({ result: { kind: 'CONFIRMED_COMPLETED', evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'BACKEND', scope: 'OPERATION', observedAt: 1010, code: 'FOUND' }, result: { remoteId: context.operation.id } } }));
+  const engine = createEngine(storage, transport, 1010, { isVerifierAvailable: () => true });
+  await engine.runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  assert.equal((await handle.status()).value.status, 'COMPLETED');
+  assert.equal(transport.calls.length, 0);
+  assert.equal(transport.verificationCalls.length, 1);
+});
+
+test('authoritative verification absence returns to scheduled ACCEPTED work', async () => {
+  const storage = new MemoryStorage();
+  const handle = await makeUnknown(storage);
+  assert.deepEqual((await handle.status()).value.schedule, { kind: 'verification', at: 1005 });
+  const transport = new FakeTransport(completed, context => ({ result: { kind: 'FINAL_NOT_APPLIED', retryable: true, evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'BACKEND', scope: 'OPERATION', observedAt: 1010, code: 'ABSENT' } } }));
+  await createEngine(storage, transport, 1010, { isVerifierAvailable: () => true }).runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  const operation = (await handle.status()).value;
+  assert.equal(operation.status, 'ACCEPTED');
+  assert.deepEqual(operation.schedule, { kind: 'execution', at: 1015 });
+});
+
+test('verification unavailable preserves UNKNOWN and never sends another execution', async () => {
+  const storage = new MemoryStorage();
+  const handle = await makeUnknown(storage);
+  const transport = new FakeTransport(completed);
+  await createEngine(storage, transport, 1005).runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  assert.equal((await handle.status()).value.status, 'UNKNOWN');
+  assert.equal(transport.calls.length, 0);
+  assert.equal(transport.verificationCalls.length, 0);
+});
+
+test('safe replay requires the registered backend contract', async () => {
+  const storage = new MemoryStorage();
+  const operationInput = input({ policySnapshot: { ...policy, replay: { kind: 'IDEMPOTENT', contractVersion: 'v1' } } });
+  const handle = await makeUnknown(storage, operationInput);
+  const unknown = (await handle.status()).value;
+  await storage.updateScheduling({
+    key: unknown, context: { ...unknown, mutationId: 'schedule-replay', expectedRevision: unknown.revision, now: 1010 },
+    command: { kind: 'SCHEDULE', schedule: { kind: 'execution', at: 1010 }, holdReason: null, jitterSample: 0.5 },
+  });
+  const transport = new FakeTransport(completed);
+  await createEngine(storage, transport, 1010, { replayContractVersion: () => 'v1', isClockTrusted: () => true }).runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  assert.equal(transport.calls.length, 1);
+  assert.equal((await handle.status()).value.status, 'COMPLETED');
+});
+
+test('verification network exception remains UNKNOWN', async () => {
+  const storage = new MemoryStorage();
+  const handle = await makeUnknown(storage);
+  const transport = new FakeTransport(completed, async () => { throw new Error('network lost'); });
+  await createEngine(storage, transport, 1005, { isVerifierAvailable: () => true }).runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  const operation = (await handle.status()).value;
+  assert.equal(operation.status, 'UNKNOWN');
+  assert.equal(operation.lastEvidence.code, 'VERIFICATION_EXCEPTION');
 });

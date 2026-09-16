@@ -1,6 +1,6 @@
 import { proposeAcceptance } from './state-machine.js';
 import type { ClockPort, MutationResult, NetworkPort, OperationKey, ReadResult, StoragePort, TelemetryPort, TransportPort, TransportResponse, Unsubscribe } from './ports.js';
-import type { ExecutionResult, Operation, OperationId, OperationInput, OperationScope } from './operation.js';
+import type { ExecutionResult, Operation, OperationId, OperationInput, OperationScope, VerificationResult } from './operation.js';
 import type { PayloadLimits } from './json.js';
 
 export interface EngineIdentifiers {
@@ -20,6 +20,11 @@ export interface OperationEngineOptions {
   readonly leaseRenewalLeadMs?: number;
   readonly isDefinitionReady: (operation: Operation) => boolean;
   readonly areCredentialsReady: (operation: Operation) => boolean;
+  /** No verifier is assumed unless the integration explicitly registers one. */
+  readonly isVerifierAvailable?: (operation: Operation) => boolean;
+  /** Backend attestation required before replaying an unresolved execution. */
+  readonly replayContractVersion?: (operation: Operation) => string | null;
+  readonly isClockTrusted?: () => boolean;
   /** A deterministic sample, normally supplied by the runtime composition. */
   readonly nextJitterSample: () => number;
   /** Offline suppresses new claims; unknown remains eligible because it is only a hint. */
@@ -84,13 +89,14 @@ export class OperationEngine {
     if (page.kind === 'ERROR') return;
     for (const operation of page.value.items) {
       if (operation.status === 'EXECUTING' || operation.status === 'VERIFYING') await this.maintainLease(operation);
+      else if (operation.status === 'UNKNOWN' && operation.schedule?.kind === 'verification') await this.verifyCandidate(operation);
       else await this.executeCandidate(operation);
     }
   }
 
   private async executeCandidate(operation: Operation): Promise<void> {
     if (this.options.network?.getSnapshot() === 'offline') return;
-    if (operation.status !== 'ACCEPTED' || operation.schedule?.kind !== 'execution' || operation.schedule.at > this.options.clock.wallNow()) return;
+    if ((operation.status !== 'ACCEPTED' && operation.status !== 'UNKNOWN') || operation.schedule?.kind !== 'execution' || operation.schedule.at > this.options.clock.wallNow()) return;
     const claim = await this.options.storage.claim({
       key: keyFor(operation),
       context: contextFor(operation, this.options.identifiers.nextMutationId(), this.options.clock.wallNow()),
@@ -100,7 +106,9 @@ export class OperationEngine {
         readiness: {
           principalScope: operation.principalScope, targetScope: operation.targetScope, definitionVersion: operation.definitionVersion,
           definitionReady: this.options.isDefinitionReady(operation), credentialsReady: this.options.areCredentialsReady(operation),
-          verifierAvailable: false, replayContractVersion: null, clockTrusted: true,
+          verifierAvailable: this.options.isVerifierAvailable?.(operation) ?? false,
+          replayContractVersion: this.options.replayContractVersion?.(operation) ?? null,
+          clockTrusted: this.options.isClockTrusted?.() ?? false,
         },
       },
     });
@@ -113,6 +121,37 @@ export class OperationEngine {
       key: keyFor(active), context: contextFor(active, this.options.identifiers.nextMutationId(), this.options.clock.wallNow()),
       command: {
         kind: 'EXECUTION_RESULT', ownership: { ownerId: active.lease.ownerId, fence: active.lease.fence, attemptId: active.activeAttempt.id },
+        result: result.result, jitterSample: this.options.nextJitterSample(), resultLimits: this.options.limits,
+        ...(result.retryAfterAt === undefined ? {} : { retryAfterAt: result.retryAfterAt }),
+      },
+    });
+    if (committed.kind === 'COMMITTED') this.publish(committed.operation);
+  }
+
+  private async verifyCandidate(operation: Extract<Operation, { readonly status: 'UNKNOWN' }>): Promise<void> {
+    const verify = this.options.transport.verify?.bind(this.options.transport);
+    const schedule = operation.schedule;
+    if (this.options.network?.getSnapshot() === 'offline' || !verify || !(this.options.isVerifierAvailable?.(operation) ?? false) || schedule?.kind !== 'verification' || schedule.at > this.options.clock.wallNow()) return;
+    const claim = await this.options.storage.claim({
+      key: keyFor(operation), context: contextFor(operation, this.options.identifiers.nextMutationId(), this.options.clock.wallNow()),
+      command: {
+        kind: 'CLAIM', action: 'verification', attemptId: this.options.identifiers.nextAttemptId(), ownerId: this.options.identifiers.ownerId,
+        leaseDurationMs: this.options.leaseDurationMs,
+        readiness: {
+          principalScope: operation.principalScope, targetScope: operation.targetScope, definitionVersion: operation.definitionVersion,
+          definitionReady: this.options.isDefinitionReady(operation), credentialsReady: this.options.areCredentialsReady(operation),
+          verifierAvailable: true, replayContractVersion: this.options.replayContractVersion?.(operation) ?? null,
+          clockTrusted: this.options.isClockTrusted?.() ?? false,
+        },
+      },
+    });
+    if (claim.kind !== 'COMMITTED' || claim.operation.status !== 'VERIFYING') return;
+    this.publish(claim.operation);
+    const result = await this.verificationResult(claim.operation, verify);
+    const committed = await this.options.storage.commitTransition({
+      key: keyFor(claim.operation), context: contextFor(claim.operation, this.options.identifiers.nextMutationId(), this.options.clock.wallNow()),
+      command: {
+        kind: 'VERIFICATION_RESULT', ownership: { ownerId: claim.operation.lease.ownerId, fence: claim.operation.lease.fence, attemptId: claim.operation.activeAttempt.id },
         result: result.result, jitterSample: this.options.nextJitterSample(), resultLimits: this.options.limits,
         ...(result.retryAfterAt === undefined ? {} : { retryAfterAt: result.retryAfterAt }),
       },
@@ -152,6 +191,17 @@ export class OperationEngine {
           observedAt: this.options.clock.wallNow(), code: 'TRANSPORT_EXCEPTION',
         } },
       };
+    }
+  }
+
+  private async verificationResult(operation: Extract<Operation, { readonly status: 'VERIFYING' }>, verify: NonNullable<TransportPort['verify']>): Promise<TransportResponse<VerificationResult>> {
+    try {
+      return await verify({ operation, attemptId: operation.activeAttempt.id, deadlineAt: operation.activeAttempt.deadlineAt });
+    } catch {
+      return { result: { kind: 'INCONCLUSIVE', evidence: {
+        operationId: operation.id, attemptId: operation.activeAttempt.id, source: 'LOCAL', scope: 'ATTEMPT',
+        observedAt: this.options.clock.wallNow(), code: 'VERIFICATION_EXCEPTION',
+      } } };
     }
   }
 
