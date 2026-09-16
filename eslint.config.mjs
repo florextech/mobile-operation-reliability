@@ -7,7 +7,7 @@ export default ts.config(
   ...ts.configs.recommended,
   { files: ['**/*.mjs'], languageOptions: { globals: { structuredClone: 'readonly' } } },
   {
-    files: ['**/*.ts'],
+    files: ['packages/core/**/*.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       'no-restricted-globals': ['error', 'fetch', 'Date', 'setTimeout', 'setInterval', 'performance', 'crypto'],

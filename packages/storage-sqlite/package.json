@@ -1,0 +1,19 @@
+{
+  "name": "@florextech/storage-sqlite",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./node": { "types": "./dist/node.d.ts", "import": "./dist/node.js" }
+  },
+  "files": ["dist"],
+  "dependencies": { "@florextech/core": "workspace:*" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm build && node --test test/*.test.mjs",
+    "coverage": "pnpm build && c8 --all --src dist --include \"dist/**/*.js\" --include \"src/**/*.ts\" --reporter lcov --reporter text --reporter json-summary node --test test/*.test.mjs"
+  }
+}
