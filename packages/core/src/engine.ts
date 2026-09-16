@@ -1,5 +1,5 @@
 import { proposeAcceptance } from './state-machine.js';
-import type { ClockPort, MutationResult, OperationKey, ReadResult, StoragePort, TelemetryPort, TransportPort } from './ports.js';
+import type { ClockPort, MutationResult, NetworkPort, OperationKey, ReadResult, StoragePort, TelemetryPort, TransportPort, TransportResponse, Unsubscribe } from './ports.js';
 import type { ExecutionResult, Operation, OperationId, OperationInput, OperationScope } from './operation.js';
 import type { PayloadLimits } from './json.js';
 
@@ -18,6 +18,10 @@ export interface OperationEngineOptions {
   readonly leaseDurationMs: number;
   readonly isDefinitionReady: (operation: Operation) => boolean;
   readonly areCredentialsReady: (operation: Operation) => boolean;
+  /** A deterministic sample, normally supplied by the runtime composition. */
+  readonly nextJitterSample: () => number;
+  /** Offline suppresses new claims; unknown remains eligible because it is only a hint. */
+  readonly network?: NetworkPort;
   readonly telemetry?: TelemetryPort;
 }
 
@@ -70,6 +74,7 @@ export class OperationEngine {
   }
 
   async runOnce(scope: OperationScope, limit = 100): Promise<void> {
+    if (this.options.network?.getSnapshot() === 'offline') return;
     const page = await this.options.storage.scanWork({ ...scope, cursor: null, limit });
     if (page.kind === 'ERROR') return;
     for (const operation of page.value.items) await this.executeCandidate(operation);
@@ -79,7 +84,7 @@ export class OperationEngine {
     if (operation.status !== 'ACCEPTED' || operation.schedule?.kind !== 'execution' || operation.schedule.at > this.options.clock.wallNow()) return;
     const claim = await this.options.storage.claim({
       key: keyFor(operation),
-      context: contextFor(operation, this.options.identifiers.nextMutationId()),
+      context: contextFor(operation, this.options.identifiers.nextMutationId(), this.options.clock.wallNow()),
       command: {
         kind: 'CLAIM', action: 'execution', attemptId: this.options.identifiers.nextAttemptId(), ownerId: this.options.identifiers.ownerId,
         leaseDurationMs: this.options.leaseDurationMs,
@@ -96,24 +101,25 @@ export class OperationEngine {
     if (active.status !== 'EXECUTING') return;
     const result = await this.transportResult(active);
     const committed = await this.options.storage.commitTransition({
-      key: keyFor(active), context: contextFor(active, this.options.identifiers.nextMutationId()),
+      key: keyFor(active), context: contextFor(active, this.options.identifiers.nextMutationId(), this.options.clock.wallNow()),
       command: {
         kind: 'EXECUTION_RESULT', ownership: { ownerId: active.lease.ownerId, fence: active.lease.fence, attemptId: active.activeAttempt.id },
-        result, jitterSample: 0.5, resultLimits: this.options.limits,
+        result: result.result, jitterSample: this.options.nextJitterSample(), resultLimits: this.options.limits,
+        ...(result.retryAfterAt === undefined ? {} : { retryAfterAt: result.retryAfterAt }),
       },
     });
     if (committed.kind === 'COMMITTED') this.publish(committed.operation);
   }
 
-  private async transportResult(operation: Extract<Operation, { readonly status: 'EXECUTING' }>): Promise<ExecutionResult> {
+  private async transportResult(operation: Extract<Operation, { readonly status: 'EXECUTING' }>): Promise<TransportResponse<ExecutionResult>> {
     try {
       return await this.options.transport.execute({ operation, attemptId: operation.activeAttempt.id, deadlineAt: operation.activeAttempt.deadlineAt });
     } catch {
       return {
-        kind: 'AMBIGUOUS', evidence: {
+        result: { kind: 'AMBIGUOUS', evidence: {
           operationId: operation.id, attemptId: operation.activeAttempt.id, source: 'LOCAL', scope: 'ATTEMPT',
           observedAt: this.options.clock.wallNow(), code: 'TRANSPORT_EXCEPTION',
-        },
+        } },
       };
     }
   }
@@ -169,14 +175,19 @@ export class OperationHandle {
 
 /** A lightweight, caller-driven scheduler; a wake never confers execution permission. */
 export class OperationScheduler {
-  constructor(private readonly engine: OperationEngine, private readonly scope: OperationScope, private readonly clock: Pick<ClockPort, 'scheduleWake'>) {}
+  constructor(private readonly engine: OperationEngine, private readonly scope: OperationScope, private readonly clock: Pick<ClockPort, 'scheduleWake'>, private readonly network?: NetworkPort) {}
   run(): Promise<void> { return this.engine.runOnce(this.scope); }
   wake(delayMs: number): () => void { return this.clock.scheduleWake(delayMs, () => { void this.run(); }); }
+  /** Reconnect is only a prompt to re-read durable work; it does not bypass due time. */
+  start(): Unsubscribe {
+    if (!this.network) return () => {};
+    return this.network.subscribe(state => { if (state === 'online') void this.run(); });
+  }
 }
 
 function keyFor(operation: Operation): OperationKey {
   return { id: operation.id, principalScope: operation.principalScope, targetScope: operation.targetScope };
 }
-function contextFor(operation: Operation, mutationId: string) {
-  return { ...keyFor(operation), mutationId, expectedRevision: operation.revision, now: operation.updatedAt };
+function contextFor(operation: Operation, mutationId: string, now: number) {
+  return { ...keyFor(operation), mutationId, expectedRevision: operation.revision, now };
 }

@@ -46,11 +46,17 @@ export interface TransportContext<S extends 'EXECUTING' | 'VERIFYING'> {
   readonly attemptId: string;
   readonly deadlineAt: number;
 }
+/** Retry-After is an adapter assertion about when a later attempt may occur;
+ * it is never evidence about the business outcome. */
+export interface TransportResponse<R> {
+  readonly result: R;
+  readonly retryAfterAt?: number;
+}
 /** One execution call authorizes at most one mutation attempt; no hidden retries.
  * Results assert evidence, never dictate lifecycle or write storage. */
 export interface TransportPort {
-  execute(context: TransportContext<'EXECUTING'>): Promise<ExecutionResult>;
-  verify?(context: TransportContext<'VERIFYING'>): Promise<VerificationResult>;
+  execute(context: TransportContext<'EXECUTING'>): Promise<TransportResponse<ExecutionResult>>;
+  verify?(context: TransportContext<'VERIFYING'>): Promise<TransportResponse<VerificationResult>>;
 }
 
 export type NetworkState = 'online' | 'offline' | 'unknown';

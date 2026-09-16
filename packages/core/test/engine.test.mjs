@@ -30,16 +30,16 @@ class MemoryStorage {
   }
 }
 
-function createEngine(storage, transport, now = 1000) {
+function createEngine(storage, transport, now = 1000, overrides = {}) {
   let serial = 0;
   return new OperationEngine({
     storage, transport, clock: { wallNow: () => now }, limits, leaseDurationMs: 1000,
     identifiers: { ownerId: 'worker', nextMutationId: () => `mutation-${++serial}`, nextAttemptId: () => `attempt-${serial}` },
-    isDefinitionReady: () => true, areCredentialsReady: () => true,
+    isDefinitionReady: () => true, areCredentialsReady: () => true, nextJitterSample: () => 0.5, ...overrides,
   });
 }
 function completed(context) {
-  return { kind: 'CONFIRMED_COMPLETED', evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'BACKEND', scope: 'OPERATION', observedAt: 1000, code: 'OK' }, result: { remoteId: context.operation.id } };
+  return { result: { kind: 'CONFIRMED_COMPLETED', evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'BACKEND', scope: 'OPERATION', observedAt: 1000, code: 'OK' }, result: { remoteId: context.operation.id } } };
 }
 
 test('execute resolves after durable acceptance and before transport', async () => {
@@ -87,7 +87,7 @@ test('acceptance error never returns a handle or invokes transport', async () =>
 
 test('confirmed rejects a terminal business failure', async () => {
   const storage = new MemoryStorage();
-  const transport = new FakeTransport(context => ({ kind: 'CONFIRMED_REJECTED', evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'BACKEND', scope: 'OPERATION', observedAt: 1000, code: 'REJECTED' } }));
+  const transport = new FakeTransport(context => ({ result: { kind: 'CONFIRMED_REJECTED', evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'BACKEND', scope: 'OPERATION', observedAt: 1000, code: 'REJECTED' } } }));
   const engine = createEngine(storage, transport);
   const handle = await engine.execute(input());
   const waiting = handle.confirmed();
@@ -116,4 +116,61 @@ test('multiple accepted operations execute independently', async () => {
   assert.equal(transport.calls.length, 2);
   assert.equal((await storage.get(input({ id: 'one' }))).value.status, 'COMPLETED');
   assert.equal((await storage.get(input({ id: 'two' }))).value.status, 'COMPLETED');
+});
+
+test('retryable no-effect records the injected backoff and Retry-After durably', async () => {
+  const storage = new MemoryStorage();
+  const transport = new FakeTransport(context => ({ retryAfterAt: 5000, result: { kind: 'NOT_APPLIED', retryable: true, evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'LOCAL', scope: 'ATTEMPT', observedAt: 1000, code: 'TEMPORARY' } } }));
+  const engine = createEngine(storage, transport, 1000, { nextJitterSample: () => 1 });
+  await engine.execute(input());
+  await engine.runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  const operation = (await storage.get(input())).value;
+  assert.equal(operation.status, 'ACCEPTED');
+  assert.deepEqual(operation.schedule, { kind: 'execution', at: 5000 });
+});
+
+test('offline is a scheduling hint that prevents claims until the next online run', async () => {
+  const storage = new MemoryStorage();
+  const transport = new FakeTransport(completed);
+  let state = 'offline';
+  const network = { getSnapshot: () => state, subscribe: () => () => {} };
+  const engine = createEngine(storage, transport, 1000, { network });
+  await engine.execute(input());
+  await engine.runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  assert.equal(transport.calls.length, 0);
+  state = 'online';
+  await engine.runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  assert.equal(transport.calls.length, 1);
+});
+
+test('scheduler runs again after a network reconnect without changing durable eligibility', async () => {
+  const storage = new MemoryStorage();
+  const transport = new FakeTransport(completed);
+  let listener = null;
+  let state = 'offline';
+  const network = { getSnapshot: () => state, subscribe: callback => { listener = callback; return () => { listener = null; }; } };
+  const engine = createEngine(storage, transport, 1000, { network });
+  await engine.execute(input());
+  const scheduler = new OperationScheduler(engine, { principalScope: 'account-1', targetScope: 'production' }, { scheduleWake: () => () => {} }, network);
+  const stop = scheduler.start();
+  state = 'online';
+  listener('online');
+  await scheduler.run();
+  assert.equal(transport.calls.length, 1);
+  stop();
+});
+
+test('restart keeps durable retry schedule and does not run early', async () => {
+  const storage = new MemoryStorage();
+  const retry = new FakeTransport(context => ({ result: { kind: 'NOT_APPLIED', retryable: true, evidence: { operationId: context.operation.id, attemptId: context.attemptId, source: 'LOCAL', scope: 'ATTEMPT', observedAt: 1000, code: 'TEMPORARY' } } }));
+  const first = createEngine(storage, retry, 1000, { nextJitterSample: () => 1 });
+  await first.execute(input());
+  await first.runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  const earlyTransport = new FakeTransport(completed);
+  await createEngine(storage, earlyTransport, 1009).runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  assert.equal(earlyTransport.calls.length, 0);
+  const dueTransport = new FakeTransport(completed);
+  await createEngine(storage, dueTransport, 1010).runOnce({ principalScope: 'account-1', targetScope: 'production' });
+  assert.equal(dueTransport.calls.length, 1);
+  assert.equal((await storage.get(input())).value.status, 'COMPLETED');
 });
