@@ -8,7 +8,7 @@ CREATE TABLE operation_events (operation_id TEXT NOT NULL REFERENCES operations(
 CREATE TABLE operation_mutations (operation_id TEXT NOT NULL REFERENCES operations(id), mutation_id TEXT NOT NULL, request TEXT NOT NULL CHECK(json_valid(request)), change TEXT NOT NULL CHECK(json_valid(change)), PRIMARY KEY(operation_id, mutation_id)) STRICT;
 PRAGMA user_version = 1;`;
 
-const get = <T extends SqlRow>(db: ExpoSQLiteTransaction, sql: string, params: readonly (string | number | null)[] = []) => db.getFirstAsync<T>(sql, params);
+const get = <T extends SqlRow>(db: ExpoSQLiteTransaction, sql: string, params: (string | number | null)[] = []) => db.getFirstAsync<T>(sql, params);
 export async function initialize(db: ExpoSQLiteDatabase): Promise<void> {
   const file = (await get<{ file: unknown }>(db, 'PRAGMA database_list'))?.file;
   ensure(typeof file === 'string' && file.length > 0, 'DurabilityUnsupported');
@@ -20,10 +20,10 @@ export async function initialize(db: ExpoSQLiteDatabase): Promise<void> {
     const version = (await get<{ user_version: unknown }>(tx, 'PRAGMA user_version'))?.user_version;
     ensure(version === 0 || version === 1, 'UnsupportedSchemaVersion');
     if (version === 0) {
-      ensure((await tx.getAllAsync('SELECT name FROM sqlite_schema WHERE type=\'table\' AND name NOT LIKE \'sqlite_%\'')).length === 0, 'UnrecognizedDatabase');
+      ensure((await tx.getAllAsync('SELECT name FROM sqlite_schema WHERE type=\'table\' AND name NOT LIKE \'sqlite_%\'', [])).length === 0, 'UnrecognizedDatabase');
       await tx.execAsync(schema);
     }
     ensure((await get<{ quick_check: unknown }>(tx, 'PRAGMA quick_check'))?.quick_check === 'ok', 'StorageCorrupt');
-    ensure((await tx.getAllAsync('PRAGMA foreign_key_check')).length === 0, 'StorageCorrupt');
+    ensure((await tx.getAllAsync('PRAGMA foreign_key_check', [])).length === 0, 'StorageCorrupt');
   });
 }

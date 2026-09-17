@@ -29,7 +29,9 @@ export class AsyncSQLiteOperationStore implements StoragePort {
     let callbackCompleted = false;
     try {
       ensure(this.ready, 'StoreClosed');
-      const result = await this.db.withExclusiveTransactionAsync(async tx => { const value = await work(tx); callbackCompleted = true; return value; });
+      let result: AcceptanceResult | null = null;
+      await this.db.withExclusiveTransactionAsync(async tx => { result = await work(tx); callbackCompleted = true; });
+      ensure(result !== null, 'TransactionWithoutResult');
       return result;
     } catch (error) {
       // A rejection after the callback completed is ambiguous to a caller. It must

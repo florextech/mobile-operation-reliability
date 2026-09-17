@@ -4,11 +4,11 @@ export type SqlValue = string | number | null;
 export type SqlRow = Readonly<Record<string, unknown>>;
 export interface ExpoSQLiteTransaction {
   execAsync(sql: string): Promise<void>;
-  runAsync(sql: string, params: readonly SqlValue[]): Promise<{ readonly changes: number }>;
-  getFirstAsync<T extends SqlRow>(sql: string, params?: readonly SqlValue[]): Promise<T | null>;
-  getAllAsync<T extends SqlRow>(sql: string, params?: readonly SqlValue[]): Promise<readonly T[]>;
+  runAsync(sql: string, params: SqlValue[]): Promise<{ readonly changes: number }>;
+  getFirstAsync<T extends SqlRow>(sql: string, params: SqlValue[]): Promise<T | null>;
+  getAllAsync<T extends SqlRow>(sql: string, params: SqlValue[]): Promise<readonly T[]>;
 }
 export interface ExpoSQLiteDatabase extends ExpoSQLiteTransaction {
-  withExclusiveTransactionAsync<T>(work: (transaction: ExpoSQLiteTransaction) => Promise<T>): Promise<T>;
+  withExclusiveTransactionAsync(work: (transaction: ExpoSQLiteTransaction) => Promise<void>): Promise<void>;
   closeAsync(): Promise<void>;
 }

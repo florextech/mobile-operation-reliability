@@ -1,0 +1,1 @@
+{ "expo": { "name": "MOR Reliability Lab", "slug": "mor-reliability-lab", "version": "0.0.0", "orientation": "portrait", "plugins": ["expo-sqlite"], "experiments": { "autolinkingModuleResolution": true } } }

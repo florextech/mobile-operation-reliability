@@ -20,6 +20,7 @@
     "quality:gate": "pnpm install --frozen-lockfile && pnpm sonar:up && pnpm security:check && pnpm sonar:scan && git diff --check && git diff --cached --check"
   },
   "license": "ISC",
+  "pnpm": { "overrides": { "uuid": "11.1.1" } },
   "packageManager": "pnpm@10.11.0",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
