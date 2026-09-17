@@ -29,6 +29,12 @@ importers:
 
   packages/core: {}
 
+  packages/inspector:
+    dependencies:
+      '@florextech/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/storage-expo:
     dependencies:
       '@florextech/core':
