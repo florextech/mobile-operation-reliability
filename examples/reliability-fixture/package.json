@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "node start.mjs",
     "build": "node --check src/server.mjs",
     "typecheck": "node --check src/server.mjs",
     "test": "node --test test/*.test.mjs",
