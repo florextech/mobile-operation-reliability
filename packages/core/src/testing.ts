@@ -19,3 +19,17 @@ export class FakeTransport implements TransportPort {
     return this.verifier(context);
   }
 }
+
+/** Scripted fault transport for deterministic resilience tests. Each step is
+ * consumed once, so tests can reproduce response loss and transient failures. */
+export class ChaosTransport implements TransportPort {
+  readonly calls: TransportContext<'EXECUTING'>[] = [];
+  constructor(private readonly steps: readonly (TransportResponse<ExecutionResult> | Error)[]) {}
+  async execute(context: TransportContext<'EXECUTING'>): Promise<TransportResponse<ExecutionResult>> {
+    this.calls.push(context);
+    const step = this.steps[this.calls.length - 1];
+    if (!step) throw new Error('Chaos script exhausted');
+    if (step instanceof Error) throw step;
+    return step;
+  }
+}
