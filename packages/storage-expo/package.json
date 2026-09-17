@@ -1,16 +1,15 @@
 {
-  "name": "@florextech/storage-sqlite",
+  "name": "@florextech/storage-expo",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "sideEffects": false,
-  "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./records": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./node": { "types": "./dist/node.d.ts", "import": "./dist/node.js" }
-  },
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
   "files": ["dist"],
-  "dependencies": { "@florextech/core": "workspace:*" },
+  "dependencies": {
+    "@florextech/core": "workspace:*",
+    "@florextech/storage-sqlite": "workspace:*"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",

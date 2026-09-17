@@ -29,6 +29,15 @@ importers:
 
   packages/core: {}
 
+  packages/storage-expo:
+    dependencies:
+      '@florextech/core':
+        specifier: workspace:*
+        version: link:../core
+      '@florextech/storage-sqlite':
+        specifier: workspace:*
+        version: link:../storage-sqlite
+
   packages/storage-sqlite:
     dependencies:
       '@florextech/core':
