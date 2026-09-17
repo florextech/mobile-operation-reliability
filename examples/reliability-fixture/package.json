@@ -1,0 +1,12 @@
+{
+  "name": "@florextech/reliability-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node --check src/server.mjs",
+    "typecheck": "node --check src/server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "coverage": "c8 --all --include 'src/**/*.mjs' --reporter lcov --reporter text --reporter json-summary node --test test/*.test.mjs"
+  },
+  "devDependencies": { "c8": "^12.0.0" }
+}
