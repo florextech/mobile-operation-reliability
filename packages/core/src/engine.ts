@@ -85,13 +85,17 @@ export class OperationEngine {
   }
 
   async runOnce(scope: OperationScope, limit = 100): Promise<void> {
-    const page = await this.options.storage.scanWork({ ...scope, cursor: null, limit });
-    if (page.kind === 'ERROR') return;
-    for (const operation of page.value.items) {
-      if (operation.status === 'EXECUTING' || operation.status === 'VERIFYING') await this.maintainLease(operation);
-      else if (operation.status === 'UNKNOWN' && operation.schedule?.kind === 'verification') await this.verifyCandidate(operation);
-      else await this.executeCandidate(operation);
-    }
+    let cursor: string | null = null;
+    do {
+      const page = await this.options.storage.scanWork({ ...scope, cursor, limit });
+      if (page.kind === 'ERROR') return;
+      for (const operation of page.value.items) {
+        if (operation.status === 'EXECUTING' || operation.status === 'VERIFYING') await this.maintainLease(operation);
+        else if (operation.status === 'UNKNOWN' && operation.schedule?.kind === 'verification') await this.verifyCandidate(operation);
+        else await this.executeCandidate(operation);
+      }
+      cursor = page.value.nextCursor;
+    } while (cursor !== null);
   }
 
   private async executeCandidate(operation: Operation): Promise<void> {

@@ -16,7 +16,11 @@ class MemoryStorage {
   }
   async get(key) { return { kind: 'OK', value: this.operations.get(key.id) ?? null }; }
   async scanWork(query) {
-    return { kind: 'OK', value: { items: [...this.operations.values()].filter(op => op.principalScope === query.principalScope && op.targetScope === query.targetScope && !['COMPLETED', 'FAILED'].includes(op.status)), nextCursor: null } };
+    const candidates = [...this.operations.values()]
+      .filter(op => op.principalScope === query.principalScope && op.targetScope === query.targetScope && !['COMPLETED', 'FAILED'].includes(op.status) && op.id > (query.cursor ?? ''))
+      .sort((left, right) => left.id < right.id ? -1 : left.id > right.id ? 1 : 0);
+    const items = candidates.slice(0, query.limit);
+    return { kind: 'OK', value: { items, nextCursor: candidates.length > query.limit ? items.at(-1).id : null } };
   }
   async claim(request) { return this.mutate(request); }
   async commitTransition(request) { return this.mutate(request); }
@@ -130,6 +134,16 @@ test('multiple accepted operations execute independently', async () => {
   assert.equal(transport.calls.length, 2);
   assert.equal((await storage.get(input({ id: 'one' }))).value.status, 'COMPLETED');
   assert.equal((await storage.get(input({ id: 'two' }))).value.status, 'COMPLETED');
+});
+
+test('one scheduler pass walks all keyset pages without starving later operations', async () => {
+  const storage = new MemoryStorage();
+  const transport = new FakeTransport(completed);
+  const engine = createEngine(storage, transport);
+  for (let index = 0; index < 1_000; index++) await engine.execute(input({ id: `bulk-${String(index).padStart(4, '0')}` }));
+  await engine.runOnce({ principalScope: 'account-1', targetScope: 'production' }, 100);
+  assert.equal(transport.calls.length, 1_000);
+  assert.equal([...storage.operations.values()].filter(operation => operation.status !== 'COMPLETED').length, 0);
 });
 
 test('retryable no-effect records the injected backoff and Retry-After durably', async () => {
