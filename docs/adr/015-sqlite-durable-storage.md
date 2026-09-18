@@ -35,6 +35,6 @@ La suite usa SQLite real, competencia entre procesos, SIGKILL, SQLITE_FULL e iny
 
 ## Referencias
 
-- [Fase 2](../PHASE_2.md)
+- [Arquitectura normativa](../../ARCHITECTURE.md)
 - [SQLite: transacciones](https://sqlite.org/lang_transaction.html)
 - [SQLite: PRAGMA synchronous y journal_mode](https://sqlite.org/pragma.html)

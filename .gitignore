@@ -6,3 +6,4 @@ coverage/
 .sonar/
 .scannerwork/
 .security/
+.expo/

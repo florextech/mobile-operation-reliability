@@ -1,0 +1,96 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version and GitHub release tag, without a leading v
+        required: true
+        type: string
+      npm_tag:
+        description: npm dist-tag
+        required: true
+        default: next
+        type: string
+      publish:
+        description: Publish packages and create the GitHub release
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm quality:gate
+      - name: Validate release metadata
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          SHOULD_PUBLISH: ${{ inputs.publish }}
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFile } from 'node:fs/promises';
+          const names = ['core', 'storage-sqlite', 'storage-expo', 'inspector'];
+          const version = process.env.RELEASE_VERSION;
+          const publish = process.env.SHOULD_PUBLISH === 'true';
+          if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) throw new Error('Invalid release version');
+          for (const name of names) {
+            const manifest = JSON.parse(await readFile(`packages/${name}/package.json`, 'utf8'));
+            if (publish && (manifest.private || manifest.version !== version)) {
+              throw new Error(`${manifest.name} must be public and version ${version} before publishing`);
+            }
+          }
+          EOF
+      - run: pnpm --filter @florextech/core pack --pack-destination ../../artifacts
+      - run: pnpm --filter @florextech/storage-sqlite pack --pack-destination ../../artifacts
+      - run: pnpm --filter @florextech/storage-expo pack --pack-destination ../../artifacts
+      - run: pnpm --filter @florextech/inspector pack --pack-destination ../../artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-packages-${{ inputs.version }}
+          path: artifacts/*.tgz
+
+  publish:
+    if: inputs.publish
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @florextech/core publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}
+        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
+      - run: pnpm --filter @florextech/storage-sqlite publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}
+        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
+      - run: pnpm --filter @florextech/storage-expo publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}
+        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
+      - run: pnpm --filter @florextech/inspector publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}
+        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
+      - run: gh release create "v${{ inputs.version }}" --target main --generate-notes --title "v${{ inputs.version }}"
+        env: { GH_TOKEN: ${{ github.token }} }
