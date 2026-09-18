@@ -16,6 +16,12 @@ Use `FakeTransport` for ordinary deterministic tests and `ChaosTransport` for sc
 
 `@florextech/inspector` is read-only. Supply an `InspectorRepository` from an adapter that can inventory terminal records. Its default payload view redacts token-like fields before UI rendering.
 
+The `expo-reliability-lab` mounts a development-only panel behind `__DEV__`.
+It lists scoped Operations and, after selection, shows the durable status,
+attempt budgets, scheduled work, transition timeline and redacted payload. The
+panel has no commands that mutate Operations: retry and verification remain the
+responsibility of the scheduler and its persisted guards.
+
 ## Lifecycle checklist
 
 1. Generate one stable operation ID per user intent and keep it if submit must
