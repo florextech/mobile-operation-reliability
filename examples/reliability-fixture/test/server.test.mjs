@@ -19,6 +19,12 @@ test('creates an idempotent order for the storefront reference application', asy
   assert.equal(first.status, 201); assert.deepEqual(await first.json(), await duplicate.json()); assert.equal(fixture.orderCount(), 1);
   assert.equal((await fetch(`http://127.0.0.1:${port}/orders/order-key-1`)).status, 200);
 });
+test('can apply an order and intentionally lose its response', async t => {
+  const fixture = createReliabilityFixture(); const port = await fixture.listen(); t.after(() => fixture.close()); fixture.setMode('drop-after-apply');
+  await assert.rejects(() => fetch(`http://127.0.0.1:${port}/orders`, { method: 'POST', body: JSON.stringify({ operationId: 'order-op-2', idempotencyKey: 'order-key-2', items: [], total: 0, currency: 'COP' }) }));
+  assert.equal(fixture.orderCount(), 1);
+  assert.equal((await fetch(`http://127.0.0.1:${port}/orders/order-key-2`)).status, 200);
+});
 test('can apply an effect and intentionally lose its response', async t => {
   const fixture = createReliabilityFixture(); const port = await fixture.listen(); t.after(() => fixture.close()); fixture.setMode('drop-after-apply');
   await assert.rejects(() => fetch(`http://127.0.0.1:${port}/payments`, { method: 'POST', body: JSON.stringify({ operationId: 'op-2', idempotencyKey: 'key-2', amount: 10 }) }));
@@ -31,9 +37,10 @@ test('accepts only documented fault controls and exposes retryable statuses', as
   const admin = `http://127.0.0.1:${port}/admin/mode`;
   const invalid = await fetch(admin, { method: 'POST', body: JSON.stringify({ mode: 'boom' }) });
   assert.equal(invalid.status, 404);
-  for (const mode of ['429', '503']) {
+  for (const mode of ['429', '503', 'drop-after-apply-delayed']) {
     const selected = await fetch(admin, { method: 'POST', body: JSON.stringify({ mode }) });
     assert.equal(selected.status, 200);
+    if (mode === 'drop-after-apply-delayed') break;
     const response = await fetch(`http://127.0.0.1:${port}/payments`, { method: 'POST', body: JSON.stringify({ operationId: `op-${mode}`, idempotencyKey: `key-${mode}`, amount: 10 }) });
     assert.equal(response.status, Number(mode));
     if (mode === '429') assert.equal(response.headers.get('retry-after'), '1');

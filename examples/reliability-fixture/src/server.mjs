@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 
-/** Local idempotent fixture used only by the Expo reliability laboratory. */
+/** Local idempotent fixture used by the Expo examples. */
 export function createReliabilityFixture() {
   const payments = new Map();
   const orders = new Map();
@@ -13,11 +13,16 @@ export function createReliabilityFixture() {
       const payment = payments.get(body.idempotencyKey) ?? Object.freeze({ id: `payment-${payments.size + 1}`, operationId: body.operationId, amount: body.amount });
       payments.set(body.idempotencyKey, payment);
       if (mode === 'drop-after-apply') { mode = 'normal'; return response.destroy(); }
+      if (mode === 'drop-after-apply-delayed') { mode = 'normal'; return dropLater(response); }
       return respond(response, 200, payment);
     }
     if (request.method === 'POST' && request.url === '/orders' && body?.idempotencyKey) {
+      if (mode === '503') return respond(response, 503, { code: 'TEMPORARY' });
+      if (mode === '429') return respond(response, 429, { code: 'RATE_LIMITED' }, { 'retry-after': '1' });
       const order = orders.get(body.idempotencyKey) ?? Object.freeze({ id: `order-${orders.size + 1}`, operationId: body.operationId, items: body.items, total: body.total, currency: body.currency });
       orders.set(body.idempotencyKey, order);
+      if (mode === 'drop-after-apply') { mode = 'normal'; return response.destroy(); }
+      if (mode === 'drop-after-apply-delayed') { mode = 'normal'; return dropLater(response); }
       return respond(response, 201, order);
     }
     if (request.method === 'POST' && request.url === '/admin/mode' && isMode(body?.mode)) {
@@ -45,6 +50,7 @@ export function createReliabilityFixture() {
     orderCount() { return orders.size; },
   });
 }
-function isMode(value) { return value === 'normal' || value === '429' || value === '503' || value === 'drop-after-apply'; }
+function isMode(value) { return value === 'normal' || value === '429' || value === '503' || value === 'drop-after-apply' || value === 'drop-after-apply-delayed'; }
 function respond(response, status, value, headers = {}) { response.writeHead(status, { 'content-type': 'application/json', ...headers }); response.end(JSON.stringify(value)); }
+function dropLater(response) { globalThis.setTimeout(() => response.destroy(), 5_000); }
 function readJson(request) { return new Promise((resolve, reject) => { let text = ''; request.on('data', chunk => { text += chunk; }); request.on('end', () => { try { resolve(JSON.parse(text)); } catch (error) { reject(error); } }); request.on('error', reject); }); }

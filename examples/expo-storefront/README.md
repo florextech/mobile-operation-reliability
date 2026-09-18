@@ -11,22 +11,29 @@ continue to be represented after the app restarts.
 
 ## Run locally
 
-In one terminal, start the idempotent local API fixture:
+In one terminal, start the idempotent local API fixture. For an iOS simulator or
+physical device, bind it to your LAN interface and use your Mac's LAN address:
 
 ```sh
-pnpm --filter @florextech/reliability-fixture start
+HOST=0.0.0.0 pnpm --filter @florextech/reliability-fixture start
 ```
 
 In another terminal, start the storefront. Use a host reachable from the
 simulator or device when it is not `127.0.0.1`:
 
 ```sh
-EXPO_PUBLIC_FIXTURE_URL=http://HOST:3000 pnpm --filter @florextech/expo-storefront start
+EXPO_PUBLIC_FIXTURE_URL=http://YOUR_MAC_LAN_IP:3000 pnpm --filter @florextech/expo-storefront start
 ```
 
 The fixture accepts `POST /orders` and provides `GET /orders/:idempotencyKey`
 for verification. It is local test infrastructure, not a backend SDK or a
 production API contract.
+
+For crash-recovery validation, the fixture also exposes its test-only
+`POST /admin/mode` control. `drop-after-apply-delayed` applies an order, waits
+five seconds, then drops the response. Terminate and reopen Expo Go during that
+window; the app must show the same order as confirmed after verification. This
+control belongs only to local test infrastructure.
 
 ## What the customer sees
 
