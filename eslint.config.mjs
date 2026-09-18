@@ -6,6 +6,7 @@ export default ts.config(
   js.configs.recommended,
   ...ts.configs.recommended,
   { files: ['**/*.mjs'], languageOptions: { globals: { structuredClone: 'readonly' } } },
+  { files: ['examples/reliability-fixture/**/*.mjs'], languageOptions: { globals: { fetch: 'readonly' } } },
   {
     files: ['packages/core/**/*.ts'],
     rules: {

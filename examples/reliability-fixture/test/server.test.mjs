@@ -16,3 +16,18 @@ test('can apply an effect and intentionally lose its response', async t => {
   assert.equal(fixture.count(), 1); fixture.setMode('normal');
   assert.equal((await fetch(`http://127.0.0.1:${port}/payments/key-2`)).status, 200);
 });
+
+test('accepts only documented fault controls and exposes retryable statuses', async t => {
+  const fixture = createReliabilityFixture(); const port = await fixture.listen(); t.after(() => fixture.close());
+  const admin = `http://127.0.0.1:${port}/admin/mode`;
+  const invalid = await fetch(admin, { method: 'POST', body: JSON.stringify({ mode: 'boom' }) });
+  assert.equal(invalid.status, 404);
+  for (const mode of ['429', '503']) {
+    const selected = await fetch(admin, { method: 'POST', body: JSON.stringify({ mode }) });
+    assert.equal(selected.status, 200);
+    const response = await fetch(`http://127.0.0.1:${port}/payments`, { method: 'POST', body: JSON.stringify({ operationId: `op-${mode}`, idempotencyKey: `key-${mode}`, amount: 10 }) });
+    assert.equal(response.status, Number(mode));
+    if (mode === '429') assert.equal(response.headers.get('retry-after'), '1');
+  }
+  assert.equal(fixture.count(), 0);
+});

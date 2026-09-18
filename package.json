@@ -7,7 +7,7 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r build && pnpm -r typecheck",
-    "lint": "eslint packages/*/src packages/*/test",
+    "lint": "eslint packages/*/src packages/*/test examples/*/src examples/*/test examples/*/App.tsx",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "coverage": "pnpm -r coverage && node scripts/normalize-lcov.mjs",
     "sonar:up": "node scripts/sonar.mjs up",
