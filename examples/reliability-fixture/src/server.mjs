@@ -11,7 +11,7 @@ export function createReliabilityFixture() {
       if (mode === '429') return respond(response, 429, { code: 'RATE_LIMITED' }, { 'retry-after': '1' });
       const payment = payments.get(body.idempotencyKey) ?? Object.freeze({ id: `payment-${payments.size + 1}`, operationId: body.operationId, amount: body.amount });
       payments.set(body.idempotencyKey, payment);
-      if (mode === 'drop-after-apply') return response.destroy();
+      if (mode === 'drop-after-apply') { mode = 'normal'; return response.destroy(); }
       return respond(response, 200, payment);
     }
     if (request.method === 'GET' && request.url?.startsWith('/payments/')) {

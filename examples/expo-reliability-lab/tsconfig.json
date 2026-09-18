@@ -1,1 +1,15 @@
-{ "compilerOptions": { "strict": true, "jsx": "react-jsx", "moduleResolution": "bundler", "module": "esnext", "target": "es2022", "skipLibCheck": true }, "include": ["App.tsx", "src/**/*.ts"] }
+{
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "es2022",
+    "skipLibCheck": true
+  },
+  "include": [
+    "App.tsx",
+    "src/**/*.ts"
+  ],
+  "extends": "expo/tsconfig.base"
+}
