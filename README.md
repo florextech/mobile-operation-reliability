@@ -22,4 +22,4 @@ const completed = await handle.confirmed();
 
 `ACCEPTED` certifies local durability. `COMPLETED` requires backend evidence. A timeout or lost response becomes `UNKNOWN` and must be verified or replayed only under the registered safety contract.
 
-See [Developer experience guide](docs/DEVELOPER_EXPERIENCE.md), [backend idempotency](docs/BACKEND_IDEMPOTENCY.md), and [reliability limits](RELIABILITY.md).
+Read the [public API](docs/PUBLIC_API.md), [developer integration guide](docs/DEVELOPER_EXPERIENCE.md), [backend idempotency contract](docs/BACKEND_IDEMPOTENCY.md), and [reliability limits](RELIABILITY.md) before integrating the SDK.

@@ -12,6 +12,14 @@
 | [ADR-012](012-hexagonal-runtime-ports.md) | Core portable y cinco puertos de efectos | Ninguno; consolida límites tras ADR-011 |
 | [ADR-013](013-errors-identity-and-observation.md) | Errores explícitos, scopes y observación durable | Ninguno |
 | [ADR-014](014-mvp-boundaries-and-validation.md) | MVP de reliability con seguridad desde el primer envío | Ninguno; acota el roadmap previo |
+| [ADR-015](015-sqlite-durable-storage.md) | SQLite durable con transacciones y driver aislado | Ninguno |
+| [ADR-016](016-operation-engine-coordination.md) | Coordinación de ejecución durable en Core | Ninguno |
+| [ADR-017](017-durable-retry-network-hints.md) | Retry durable y red como señal no autoritativa | Ninguno |
+| [ADR-018](018-leases-and-conservative-crash-recovery.md) | Leases renovables y recovery conservador | Ninguno |
+| [ADR-019](019-verification-and-safe-replay.md) | Verification autoritativa y replay condicionado | Ninguno |
+| [ADR-020](020-async-expo-storage-boundary.md) | Frontera asíncrona para Expo SQLite | Ninguno |
+| [ADR-021](021-alpha-public-api.md) | Superficie de imports explícita para el alpha | Ninguno |
+| [ADR-022](022-alpha-retention-and-capacity.md) | Retención conservadora y capacidad explícita en alpha | Ninguno |
 
 ## Antecedentes sustituidos
 
