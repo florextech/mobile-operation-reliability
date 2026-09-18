@@ -1,0 +1,23 @@
+{
+  "name": "@florextech/expo-storefront",
+  "private": true,
+  "main": "expo/AppEntry",
+  "scripts": {
+    "start": "pnpm --filter @florextech/core build && pnpm --filter @florextech/storage-sqlite build && pnpm --filter @florextech/storage-expo build && expo start --clear",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "coverage": "c8 --all --include 'src/**/*.ts' --reporter lcov --reporter text --reporter json-summary node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@florextech/core": "workspace:*",
+    "@florextech/inspector": "workspace:*",
+    "@florextech/storage-expo": "workspace:*",
+    "expo": "~57.0.24",
+    "expo-network": "~57.0.2",
+    "expo-sqlite": "~57.0.3",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  },
+  "devDependencies": { "@types/react": "^19.2.18", "c8": "^12.0.0", "typescript": "~6.0.3" }
+}

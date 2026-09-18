@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 /** Local idempotent fixture used only by the Expo reliability laboratory. */
 export function createReliabilityFixture() {
   const payments = new Map();
+  const orders = new Map();
   let mode = 'normal';
   const server = createServer(async (request, response) => {
     const body = await readJson(request).catch(() => null);
@@ -14,6 +15,11 @@ export function createReliabilityFixture() {
       if (mode === 'drop-after-apply') { mode = 'normal'; return response.destroy(); }
       return respond(response, 200, payment);
     }
+    if (request.method === 'POST' && request.url === '/orders' && body?.idempotencyKey) {
+      const order = orders.get(body.idempotencyKey) ?? Object.freeze({ id: `order-${orders.size + 1}`, operationId: body.operationId, items: body.items, total: body.total, currency: body.currency });
+      orders.set(body.idempotencyKey, order);
+      return respond(response, 201, order);
+    }
     if (request.method === 'POST' && request.url === '/admin/mode' && isMode(body?.mode)) {
       mode = body.mode;
       return respond(response, 200, { mode });
@@ -23,6 +29,11 @@ export function createReliabilityFixture() {
       const payment = payments.get(key);
       return payment ? respond(response, 200, payment) : respond(response, 404, { code: 'NOT_FOUND' });
     }
+    if (request.method === 'GET' && request.url?.startsWith('/orders/')) {
+      const key = decodeURIComponent(request.url.slice('/orders/'.length));
+      const order = orders.get(key);
+      return order ? respond(response, 200, order) : respond(response, 404, { code: 'NOT_FOUND' });
+    }
     respond(response, 404, { code: 'NOT_FOUND' });
   });
   return Object.freeze({
@@ -31,6 +42,7 @@ export function createReliabilityFixture() {
     listen() { return new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server.address().port))); },
     close() { return new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())); },
     count() { return payments.size; },
+    orderCount() { return orders.size; },
   });
 }
 function isMode(value) { return value === 'normal' || value === '429' || value === '503' || value === 'drop-after-apply'; }

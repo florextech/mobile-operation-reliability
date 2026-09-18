@@ -67,6 +67,43 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
 
+  examples/expo-storefront:
+    dependencies:
+      '@florextech/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@florextech/inspector':
+        specifier: workspace:*
+        version: link:../../packages/inspector
+      '@florextech/storage-expo':
+        specifier: workspace:*
+        version: link:../../packages/storage-expo
+      expo:
+        specifier: ~57.0.24
+        version: 57.0.24(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      expo-network:
+        specifier: ~57.0.2
+        version: 57.0.2(expo@57.0.24)(react@19.2.3)
+      expo-sqlite:
+        specifier: ~57.0.3
+        version: 57.0.3(expo@57.0.24)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-native:
+        specifier: 0.86.3
+        version: 0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      c8:
+        specifier: ^12.0.0
+        version: 12.0.0
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
   examples/reliability-fixture:
     devDependencies:
       c8:

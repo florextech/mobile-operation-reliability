@@ -10,6 +10,15 @@ test('deduplicates a payment and exposes verification evidence', async t => {
   assert.deepEqual(await first.json(), await duplicate.json()); assert.equal(fixture.count(), 1);
   const verification = await fetch(`http://127.0.0.1:${port}/payments/key-1`); assert.equal(verification.status, 200);
 });
+
+test('creates an idempotent order for the storefront reference application', async t => {
+  const fixture = createReliabilityFixture(); const port = await fixture.listen(); t.after(() => fixture.close());
+  const request = { operationId: 'order-op-1', idempotencyKey: 'order-key-1', items: [{ sku: 'coffee', quantity: 2 }], total: 28_000, currency: 'COP' };
+  const first = await fetch(`http://127.0.0.1:${port}/orders`, { method: 'POST', body: JSON.stringify(request) });
+  const duplicate = await fetch(`http://127.0.0.1:${port}/orders`, { method: 'POST', body: JSON.stringify(request) });
+  assert.equal(first.status, 201); assert.deepEqual(await first.json(), await duplicate.json()); assert.equal(fixture.orderCount(), 1);
+  assert.equal((await fetch(`http://127.0.0.1:${port}/orders/order-key-1`)).status, 200);
+});
 test('can apply an effect and intentionally lose its response', async t => {
   const fixture = createReliabilityFixture(); const port = await fixture.listen(); t.after(() => fixture.close()); fixture.setMode('drop-after-apply');
   await assert.rejects(() => fetch(`http://127.0.0.1:${port}/payments`, { method: 'POST', body: JSON.stringify({ operationId: 'op-2', idempotencyKey: 'key-2', amount: 10 }) }));

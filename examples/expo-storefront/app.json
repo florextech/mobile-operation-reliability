@@ -1,0 +1,1 @@
+{ "expo": { "name": "Café Flores", "slug": "cafe-flores-storefront", "version": "0.0.0", "orientation": "portrait", "plugins": ["expo-sqlite"], "experiments": { "autolinkingModuleResolution": true } } }
