@@ -13,6 +13,7 @@
     "@florextech/core": "workspace:*",
     "@florextech/storage-expo": "workspace:*",
     "expo": "~57.0.24",
+    "expo-network": "~57.0.2",
     "expo-sqlite": "~57.0.3",
     "react": "19.2.3",
     "react-native": "0.86.3"
