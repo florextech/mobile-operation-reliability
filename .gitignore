@@ -7,3 +7,6 @@ coverage/
 .scannerwork/
 .security/
 .expo/
+website/.docusaurus/
+website/build/
+website/coverage/

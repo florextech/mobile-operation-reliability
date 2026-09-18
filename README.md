@@ -39,6 +39,7 @@ completed it. Build your REST mapping and product UI around `COMPLETED`,
 
 ## Documentation
 
+- [Documentation site](website/README.md) — built with Docusaurus and deployed by GitHub Pages
 - [Integration guide](docs/INTEGRATION.md)
 - [Backend idempotency contract](docs/BACKEND_IDEMPOTENCY.md)
 - [Public alpha API](docs/PUBLIC_API.md)

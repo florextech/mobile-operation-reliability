@@ -1,0 +1,21 @@
+{
+  "name": "@florextech/docs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "typecheck": "node --check docusaurus.config.mjs && node --check sidebars.mjs",
+    "test": "node --test test/*.test.mjs",
+    "coverage": "c8 --all --include 'docusaurus.config.mjs' --include 'sidebars.mjs' --reporter lcov --reporter text --reporter json-summary node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "c8": "^12.0.0"
+  }
+}
