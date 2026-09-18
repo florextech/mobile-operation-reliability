@@ -1,8 +1,17 @@
 import { proposeAcceptance, sameIntent, transition } from '@florextech/core';
-import type { AcceptanceChange, AcceptanceResult, ClockPort, MutationRequest, MutationResult, Operation, OperationChange, OperationKey, PageQuery, PayloadLimits, ReadResult, StoragePort } from '@florextech/core';
+import type { AcceptanceChange, AcceptanceResult, ClockPort, MutationRequest, MutationResult, Operation, OperationChange, OperationKey, OperationScope, OperationStatus, Page, PageQuery, PayloadLimits, ReadResult, StoragePort } from '@florextech/core';
 import { decodeChange, decodeEvent, decodeOperation, encode, ensure, mutationError, storageError } from '@florextech/storage-sqlite/records';
 import type { ExpoSQLiteDatabase, ExpoSQLiteTransaction, SqlRow } from './driver.js';
 import { initialize } from './schema.js';
+
+/** Optional, read-only inventory capability for diagnostics adapters. It is
+ * deliberately outside StoragePort because executors must not depend on it. */
+export interface InspectionQuery extends OperationScope {
+  readonly cursor: string | null;
+  readonly limit: number;
+  readonly status?: OperationStatus;
+  readonly id?: string;
+}
 
 /** Async StoragePort implementation for expo-sqlite's exclusive transaction API.
  * Every mutating decision and its three durable records run in one exclusive task. */
@@ -87,6 +96,17 @@ export class AsyncSQLiteOperationStore implements StoragePort {
   async scanWork(query: PageQuery) { return this.read(async () => {
     this.page(query); const rows = await this.db.getAllAsync('SELECT * FROM operations WHERE principal_scope=? AND target_scope=? AND status NOT IN(\'COMPLETED\',\'FAILED\') AND id>? ORDER BY id LIMIT ?', [query.principalScope, query.targetScope, query.cursor ?? '', query.limit + 1]);
     const items = rows.slice(0, query.limit).map(row => this.operation(row)); return { items, nextCursor: rows.length > query.limit ? items.at(-1)!.id : null };
+  }); }
+  async listInspection(query: InspectionQuery): Promise<ReadResult<Page<Operation>>> { return this.read(async () => {
+    this.page(query);
+    ensure(query.status === undefined || ['ACCEPTED', 'EXECUTING', 'UNKNOWN', 'VERIFYING', 'COMPLETED', 'FAILED'].includes(query.status), 'InvalidPage');
+    ensure(query.id === undefined || (typeof query.id === 'string' && query.id.length > 0), 'InvalidPage');
+    const rows = await this.db.getAllAsync(
+      'SELECT * FROM operations WHERE principal_scope=? AND target_scope=? AND id>? AND (? IS NULL OR status=?) AND (? IS NULL OR instr(id,?)>0) ORDER BY id LIMIT ?',
+      [query.principalScope, query.targetScope, query.cursor ?? '', query.status ?? null, query.status ?? null, query.id ?? null, query.id ?? '', query.limit + 1],
+    );
+    const items = rows.slice(0, query.limit).map(row => this.operation(row));
+    return { items, nextCursor: rows.length > query.limit ? items.at(-1)!.id : null };
   }); }
   private page(page: { cursor: string | null; limit: number }) { ensure(Number.isSafeInteger(page.limit) && page.limit > 0 && page.limit <= 1000, 'InvalidPage'); ensure(page.cursor === null || typeof page.cursor === 'string', 'InvalidPage'); }
   async getMutation(key: OperationKey, mutationId: string) { return this.read(async () => {

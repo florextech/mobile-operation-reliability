@@ -1,9 +1,18 @@
 import { proposeAcceptance, sameIntent, transition } from '@florextech/core';
-import type { AcceptanceChange, AcceptanceResult, ClockPort, MutationRequest, MutationResult, Operation, OperationChange, OperationKey, PageQuery, PayloadLimits, ReadResult, StoragePort } from '@florextech/core';
+import type { AcceptanceChange, AcceptanceResult, ClockPort, MutationRequest, MutationResult, Operation, OperationChange, OperationKey, OperationScope, OperationStatus, Page, PageQuery, PayloadLimits, ReadResult, StoragePort } from '@florextech/core';
 import type { SQLiteConnection, SqlRow } from './driver.js';
 import { decodeChange, decodeEvent, decodeOperation, encode } from './codec.js';
 import { ensure, mutationError, storageError } from './errors.js';
 import { initialize } from './schema.js';
+
+/** Optional, read-only inventory capability for diagnostics adapters. It is
+ * deliberately outside StoragePort because executors must not depend on it. */
+export interface InspectionQuery extends OperationScope {
+  readonly cursor: string | null;
+  readonly limit: number;
+  readonly status?: OperationStatus;
+  readonly id?: string;
+}
 
 export class SQLiteOperationStore implements StoragePort {
   private ready = false;
@@ -99,6 +108,19 @@ export class SQLiteOperationStore implements StoragePort {
     return this.read(() => {
       this.page(query);
       const rows = this.db.all("SELECT * FROM operations WHERE principal_scope=? AND target_scope=? AND status NOT IN('COMPLETED','FAILED') AND id>? ORDER BY id LIMIT ?", [query.principalScope, query.targetScope, query.cursor ?? '', query.limit + 1]);
+      const items = rows.slice(0, query.limit).map(row => this.operation(row));
+      return { items, nextCursor: rows.length > query.limit ? items.at(-1)!.id : null };
+    });
+  }
+  async listInspection(query: InspectionQuery): Promise<ReadResult<Page<Operation>>> {
+    return this.read(() => {
+      this.page(query);
+      ensure(query.status === undefined || ['ACCEPTED', 'EXECUTING', 'UNKNOWN', 'VERIFYING', 'COMPLETED', 'FAILED'].includes(query.status), 'InvalidPage');
+      ensure(query.id === undefined || (typeof query.id === 'string' && query.id.length > 0), 'InvalidPage');
+      const rows = this.db.all(
+        'SELECT * FROM operations WHERE principal_scope=? AND target_scope=? AND id>? AND (? IS NULL OR status=?) AND (? IS NULL OR instr(id,?)>0) ORDER BY id LIMIT ?',
+        [query.principalScope, query.targetScope, query.cursor ?? '', query.status ?? null, query.status ?? null, query.id ?? null, query.id ?? '', query.limit + 1],
+      );
       const items = rows.slice(0, query.limit).map(row => this.operation(row));
       return { items, nextCursor: rows.length > query.limit ? items.at(-1)!.id : null };
     });

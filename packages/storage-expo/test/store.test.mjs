@@ -58,3 +58,11 @@ test('async store atomically advances an execution through completion', async t 
   assert.equal(completed.operation.status, 'COMPLETED');
   assert.equal((await store.scanWork({ ...proposal.operation, cursor: null, limit: 10 })).value.items.length, 0);
 });
+
+test('async store exposes a scoped diagnostic inventory without affecting work scans', async t => {
+  const { store, proposal } = await setup(t);
+  await store.accept(proposal);
+  const page = await store.listInspection({ principalScope: proposal.operation.principalScope, targetScope: proposal.operation.targetScope, cursor: null, limit: 10, status: 'ACCEPTED' });
+  assert.equal(page.kind, 'OK');
+  assert.deepEqual(page.value.items.map(operation => operation.id), [proposal.operation.id]);
+});

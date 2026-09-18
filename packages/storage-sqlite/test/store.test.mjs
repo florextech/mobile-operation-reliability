@@ -128,6 +128,18 @@ test('keyset pages preserve scope and validate limits', async t => {
   assert.equal((await store.getMutation(proposal.operation, 'absent')).value, null);
 });
 
+test('diagnostic inventory is scoped, filtered and keyset paged', async t => {
+  const { store } = await setup(t);
+  for (const id of ['a-payment', 'b-order', 'c-payment']) await store.accept(proposeAcceptance(input({ id }), 1000, `accept-${id}`, limits));
+  await store.accept(proposeAcceptance(input({ id: 'other-scope', principalScope: 'other' }), 1000, 'other-scope', limits));
+  const query = { principalScope: 'account-1', targetScope: 'production', cursor: null, limit: 1, id: 'payment' };
+  const first = (await store.listInspection(query)).value;
+  assert.deepEqual(first.items.map(operation => operation.id), ['a-payment']);
+  assert.equal(first.nextCursor, 'a-payment');
+  assert.deepEqual((await store.listInspection({ ...query, cursor: first.nextCursor })).value.items.map(operation => operation.id), ['c-payment']);
+  assert.equal((await store.listInspection({ ...query, id: '' })).kind, 'ERROR');
+});
+
 test('verification persists backend completion after uncertainty', async t => {
   const { store, proposal, time } = await setup(t);
   await store.accept(proposal);
