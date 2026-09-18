@@ -35,6 +35,9 @@ importers:
       '@florextech/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@florextech/inspector':
+        specifier: workspace:*
+        version: link:../../packages/inspector
       '@florextech/storage-expo':
         specifier: workspace:*
         version: link:../../packages/storage-expo

@@ -3,6 +3,7 @@ import { Button, SafeAreaView, ScrollView, Text } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { OperationEngine, OperationScheduler, operationId } from '@florextech/core';
 import type { OperationId } from '@florextech/core';
+import { OperationInspector } from '@florextech/inspector';
 import { AsyncSQLiteOperationStore } from '@florextech/storage-expo';
 import { createLabTransport } from './src/lab-transport';
 import { connectLifecycle, ExpoNetworkHint } from './src/mobile-runtime';
@@ -15,7 +16,15 @@ interface LabRuntime { readonly engine: OperationEngine; readonly scheduler: Ope
 
 export default function App() {
   const [runtime, setRuntime] = useState<LabRuntime | null>(null); const [history, setHistory] = useState<string[]>([]);
-  const refresh = async (value: LabRuntime) => { const ids = await caseIds(value.database); const lines = await Promise.all(ids.map(async id => { const status = await value.store.get({ id, ...scenario }); return `${id}: ${status.kind === 'OK' ? status.value?.status ?? 'MISSING' : status.error.code}`; })); setHistory(lines); };
+  const refresh = async (value: LabRuntime) => {
+    const inspector = new OperationInspector({ list: query => value.store.listInspection(query), get: key => value.store.get(key), readEvents: (key, page) => value.store.readEvents(key, page) });
+    const ids = await caseIds(value.database);
+    const lines = await Promise.all(ids.map(async id => {
+      const detail = await inspector.detail({ id, ...scenario });
+      return `${id}: ${detail.kind === 'OK' ? detail.value === null ? 'MISSING' : `${detail.value.operation.status}; events=${detail.value.events.length}` : detail.error.code}`;
+    }));
+    setHistory(lines);
+  };
   useEffect(() => { let active: LabRuntime | null = null; void bootstrap().then(async value => { active = value; setRuntime(value); await refresh(value); }).catch(error => setHistory([`Bootstrap failed: ${String(error)}`])); return () => active?.close(); }, []);
   const accept = async () => {
     if (!runtime) return;
