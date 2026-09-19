@@ -67,7 +67,7 @@ export default function App() {
   };
   const injectAndAccept = async (mode: FixtureMode) => { await selectFixtureMode(mode); await accept(); };
   return <SafeAreaView style={styles.screen}><ScrollView contentContainerStyle={styles.content}>
-    <View style={styles.hero}><Text style={styles.eyebrow}>FLOREXTECH · RELIABILITY LAB</Text><Text style={styles.title}>Payment operations</Text><Text style={styles.subtitle}>A local, durable workflow for testing how mobile operations behave when the network is unreliable.</Text></View>
+    <View style={styles.hero}><Text style={styles.eyebrow}>RELIABILITY LAB</Text><Text style={styles.title}>Payment operations</Text><Text style={styles.subtitle}>A local, durable workflow for testing how mobile operations behave when the network is unreliable.</Text></View>
     <View style={styles.healthCard}><View style={styles.healthDot} /><View style={styles.healthCopy}><Text style={styles.healthTitle}>{runtime ? 'Durable store online' : 'Starting store'}</Text><Text style={styles.healthText}>{scenario.principalScope} · {scenario.targetScope}</Text></View>{busy ? <ActivityIndicator color="#7dd3fc" /> : null}</View>
     <View style={styles.tabs}><TabButton label="Run" active={tab === 'run'} onPress={() => { setTab('run'); setSelectedDetail(null); }} /><TabButton label="Inspector" active={tab === 'inspector'} onPress={() => setTab('inspector')} /></View>
     <Text style={styles.notice}>{notice}</Text>
