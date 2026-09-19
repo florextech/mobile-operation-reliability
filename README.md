@@ -26,14 +26,17 @@ verification.
 ```mermaid
 flowchart LR
   I[Business intent] --> P[Persist Operation]
-  P --> A[ACCEPTED\nSDK owns the intent]
-  A --> X[Execute against REST API]
-  X -->|Backend confirms| C[COMPLETED]
-  X -->|Failure is proven| F[FAILED]
-  X -->|Response is lost or ambiguous| U[UNKNOWN]
+  P --> A["ACCEPTED<br/>SDK owns the intent"]
+  A --> E[EXECUTING]
+  E -->|Backend completion evidence| C[COMPLETED]
+  E -->|Terminal no-effect evidence| F[FAILED]
+  E -->|Lost or ambiguous response| U[UNKNOWN]
+  E -->|Retryable no-effect| A
   U --> V[Verify with backend evidence]
-  V -->|Effect confirmed| C
-  V -->|Absence or failure proven| F
+  V -->|Completion evidence| C
+  V -->|Terminal no-effect evidence| F
+  V -->|Safe replay authorized| A
+  V -->|Inconclusive evidence| U
 ```
 
 The durable boundary is `ACCEPTED`: it confirms the SDK has stored the
