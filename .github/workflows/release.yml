@@ -84,6 +84,7 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
+      - run: pnpm build
       - run: pnpm --filter @florexlabs/core publish --access public --no-git-checks --tag "$NPM_TAG"
         env:
           NPM_TAG: ${{ inputs.npm_tag }}
