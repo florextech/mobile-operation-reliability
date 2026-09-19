@@ -21,6 +21,25 @@ existing API. Product code can distinguish a locally accepted intent, a
 backend-confirmed result, a proven failure and an outcome that still needs
 verification.
 
+## Operation lifecycle
+
+```mermaid
+flowchart LR
+  I[Business intent] --> P[Persist Operation]
+  P --> A[ACCEPTED\nSDK owns the intent]
+  A --> X[Execute against REST API]
+  X -->|Backend confirms| C[COMPLETED]
+  X -->|Failure is proven| F[FAILED]
+  X -->|Response is lost or ambiguous| U[UNKNOWN]
+  U --> V[Verify with backend evidence]
+  V -->|Effect confirmed| C
+  V -->|Absence or failure proven| F
+```
+
+The durable boundary is `ACCEPTED`: it confirms the SDK has stored the
+operation, not that the backend has completed it. `UNKNOWN` keeps ambiguity
+visible until verification produces backend evidence.
+
 ## What it does
 
 1. Stores a business Operation durably before remote execution.
