@@ -5,6 +5,22 @@ REST APIs. Persist an `order.create`, `payment.create` or `inventory.update`
 intention before attempting the network, then preserve the difference between a
 backend-confirmed result and an uncertain one.
 
+## Problem
+
+Mobile clients can lose connectivity, be suspended, or crash after sending a
+request. In that gap, the server may have created an order or charged a payment
+while the client has no response. Treating that as a generic HTTP failure can
+create a duplicate business effect; treating it as success can mislead the
+user.
+
+## Solution
+
+This SDK records the business intent as a durable Operation before any network
+attempt. It then coordinates execution, recovery and verification against the
+existing API. Product code can distinguish a locally accepted intent, a
+backend-confirmed result, a proven failure and an outcome that still needs
+verification.
+
 ## What it does
 
 1. Stores a business Operation durably before remote execution.
