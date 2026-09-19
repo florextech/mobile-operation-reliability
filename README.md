@@ -5,6 +5,44 @@ REST APIs. Persist an `order.create`, `payment.create` or `inventory.update`
 intention before attempting the network, then preserve the difference between a
 backend-confirmed result and an uncertain one.
 
+## Problem
+
+Mobile clients can lose connectivity, be suspended, or crash after sending a
+request. In that gap, the server may have created an order or charged a payment
+while the client has no response. Treating that as a generic HTTP failure can
+create a duplicate business effect; treating it as success can mislead the
+user.
+
+## Solution
+
+This SDK records the business intent as a durable Operation before any network
+attempt. It then coordinates execution, recovery and verification against the
+existing API. Product code can distinguish a locally accepted intent, a
+backend-confirmed result, a proven failure and an outcome that still needs
+verification.
+
+## Operation lifecycle
+
+```mermaid
+flowchart LR
+  I[Business intent] --> P[Persist Operation]
+  P --> A["ACCEPTED<br/>SDK owns the intent"]
+  A --> E[EXECUTING]
+  E -->|Backend completion evidence| C[COMPLETED]
+  E -->|Terminal no-effect evidence| F[FAILED]
+  E -->|Lost or ambiguous response| U[UNKNOWN]
+  E -->|Retryable no-effect| A
+  U --> V[Verify with backend evidence]
+  V -->|Completion evidence| C
+  V -->|Terminal no-effect evidence| F
+  V -->|Safe replay authorized| A
+  V -->|Inconclusive evidence| U
+```
+
+The durable boundary is `ACCEPTED`: it confirms the SDK has stored the
+operation, not that the backend has completed it. `UNKNOWN` keeps ambiguity
+visible until verification produces backend evidence.
+
 ## What it does
 
 1. Stores a business Operation durably before remote execution.

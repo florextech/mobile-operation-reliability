@@ -43,6 +43,10 @@ services:
     volumes:
       - .:/usr/src
       - scanner_cache:/opt/sonar-scanner/.sonar/cache
+    # Do not expose local Sonar credentials through the source bind mount. This
+    # also gives the non-root scanner a traversable directory in CI.
+    tmpfs:
+      - /usr/src/.sonar:mode=1777
 volumes:
   postgres_data:
   sonar_data:
