@@ -84,13 +84,18 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @florextech/core publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}
-        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
-      - run: pnpm --filter @florextech/storage-sqlite publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}
-        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
-      - run: pnpm --filter @florextech/storage-expo publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}
-        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
-      - run: pnpm --filter @florextech/inspector publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}
-        env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
-      - run: gh release create "v${{ inputs.version }}" --target main --generate-notes --title "v${{ inputs.version }}"
-        env: { GH_TOKEN: ${{ github.token }} }
+      - run: 'pnpm --filter @florextech/core publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: 'pnpm --filter @florextech/storage-sqlite publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: 'pnpm --filter @florextech/storage-expo publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: 'pnpm --filter @florextech/inspector publish --access public --no-git-checks --tag ${{ inputs.npm_tag }}'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: 'gh release create "v${{ inputs.version }}" --target main --generate-notes --title "v${{ inputs.version }}"'
+        env:
+          GH_TOKEN: ${{ github.token }}
