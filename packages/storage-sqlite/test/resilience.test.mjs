@@ -6,7 +6,7 @@ import { once } from 'node:events';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { proposeAcceptance } from '@florextech/core';
+import { proposeAcceptance } from '@florexlabs/core';
 import { SQLiteOperationStore } from '../dist/index.js';
 import { NodeSQLiteConnection, createNodeSQLiteStore } from '../dist/node.js';
 import { input, limits } from '../../core/test/helpers.mjs';

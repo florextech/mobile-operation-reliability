@@ -1,12 +1,12 @@
 {
-  "name": "@florextech/inspector",
+  "name": "@florexlabs/inspector",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "sideEffects": false,
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
   "files": ["dist"],
-  "dependencies": { "@florextech/core": "workspace:*" },
+  "dependencies": { "@florexlabs/core": "workspace:*" },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",

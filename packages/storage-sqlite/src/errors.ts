@@ -1,5 +1,5 @@
-import { DomainError } from '@florextech/core';
-import type { MutationResult, OperationError } from '@florextech/core';
+import { DomainError } from '@florexlabs/core';
+import type { MutationResult, OperationError } from '@florexlabs/core';
 
 export class StoreError extends Error {
   constructor(readonly code: string) { super(code); this.name = 'StoreError'; }

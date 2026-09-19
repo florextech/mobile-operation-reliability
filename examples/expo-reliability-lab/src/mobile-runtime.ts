@@ -1,6 +1,6 @@
 import { AppState } from 'react-native';
 import * as Network from 'expo-network';
-import type { NetworkPort, NetworkState, OperationScheduler, Unsubscribe } from '@florextech/core';
+import type { NetworkPort, NetworkState, OperationScheduler, Unsubscribe } from '@florexlabs/core';
 
 /** Mobile signals are hints only: neither network nor lifecycle transitions operations. */
 export class ExpoNetworkHint implements NetworkPort {

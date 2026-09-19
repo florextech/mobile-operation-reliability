@@ -15,14 +15,14 @@ In one terminal, start the idempotent local API fixture. For an iOS simulator or
 physical device, bind it to your LAN interface and use your Mac's LAN address:
 
 ```sh
-HOST=0.0.0.0 pnpm --filter @florextech/reliability-fixture start
+HOST=0.0.0.0 pnpm --filter @florexlabs/reliability-fixture start
 ```
 
 In another terminal, start the storefront. Use a host reachable from the
 simulator or device when it is not `127.0.0.1`:
 
 ```sh
-EXPO_PUBLIC_FIXTURE_URL=http://YOUR_MAC_LAN_IP:3000 pnpm --filter @florextech/expo-storefront start
+EXPO_PUBLIC_FIXTURE_URL=http://YOUR_MAC_LAN_IP:3000 pnpm --filter @florexlabs/expo-storefront start
 ```
 
 The fixture accepts `POST /orders` and provides `GET /orders/:idempotencyKey`

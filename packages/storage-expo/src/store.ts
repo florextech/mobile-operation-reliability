@@ -1,6 +1,6 @@
-import { proposeAcceptance, sameIntent, transition } from '@florextech/core';
-import type { AcceptanceChange, AcceptanceResult, ClockPort, MutationRequest, MutationResult, Operation, OperationChange, OperationKey, OperationScope, OperationStatus, Page, PageQuery, PayloadLimits, ReadResult, StoragePort } from '@florextech/core';
-import { decodeChange, decodeEvent, decodeOperation, encode, ensure, mutationError, storageError } from '@florextech/storage-sqlite/records';
+import { proposeAcceptance, sameIntent, transition } from '@florexlabs/core';
+import type { AcceptanceChange, AcceptanceResult, ClockPort, MutationRequest, MutationResult, Operation, OperationChange, OperationKey, OperationScope, OperationStatus, Page, PageQuery, PayloadLimits, ReadResult, StoragePort } from '@florexlabs/core';
+import { decodeChange, decodeEvent, decodeOperation, encode, ensure, mutationError, storageError } from '@florexlabs/storage-sqlite/records';
 import type { ExpoSQLiteDatabase, ExpoSQLiteTransaction, SqlRow } from './driver.js';
 import { initialize } from './schema.js';
 

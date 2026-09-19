@@ -1,5 +1,5 @@
 import type { ExpoSQLiteDatabase, ExpoSQLiteTransaction, SqlRow } from './driver.js';
-import { ensure } from '@florextech/storage-sqlite/records';
+import { ensure } from '@florexlabs/storage-sqlite/records';
 
 const schema = `
 CREATE TABLE operations (id TEXT PRIMARY KEY NOT NULL, principal_scope TEXT NOT NULL, target_scope TEXT NOT NULL, idempotency_key TEXT, status TEXT NOT NULL CHECK(status IN ('ACCEPTED','EXECUTING','UNKNOWN','VERIFYING','COMPLETED','FAILED')), revision INTEGER NOT NULL CHECK(revision >= 0), snapshot TEXT NOT NULL CHECK(json_valid(snapshot)), UNIQUE(principal_scope, target_scope, idempotency_key)) STRICT;

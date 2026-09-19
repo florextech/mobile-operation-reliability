@@ -37,9 +37,9 @@ changes an Operation by itself.
 
 ## Reproduce the response-loss run
 
-1. Start the fixture: `pnpm --filter @florextech/reliability-fixture start`.
+1. Start the fixture: `pnpm --filter @florexlabs/reliability-fixture start`.
 2. Start the lab with a fixture URL reachable from the simulator or device:
-   `EXPO_PUBLIC_FIXTURE_URL=http://HOST:3000 pnpm --filter @florextech/expo-reliability-lab start`.
+   `EXPO_PUBLIC_FIXTURE_URL=http://HOST:3000 pnpm --filter @florexlabs/expo-reliability-lab start`.
 3. Open the lab, choose **Inject response loss then accept**, then force-close
    and reopen it.
 4. Choose **Run recovery / verification**. The same Operation ID must become

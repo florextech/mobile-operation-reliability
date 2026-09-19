@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as SQLite from 'expo-sqlite';
-import { OperationEngine, OperationScheduler, operationId } from '@florextech/core';
-import type { OperationId, OperationStatus } from '@florextech/core';
-import { OperationInspector, type OperationDetail } from '@florextech/inspector';
-import { AsyncSQLiteOperationStore } from '@florextech/storage-expo';
+import { OperationEngine, OperationScheduler, operationId } from '@florexlabs/core';
+import type { OperationId, OperationStatus } from '@florexlabs/core';
+import { OperationInspector, type OperationDetail } from '@florexlabs/inspector';
+import { AsyncSQLiteOperationStore } from '@florexlabs/storage-expo';
 import { createLabTransport } from './src/lab-transport';
 import { connectLifecycle, ExpoNetworkHint } from './src/mobile-runtime';
 

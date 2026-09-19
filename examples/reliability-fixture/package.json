@@ -1,5 +1,5 @@
 {
-  "name": "@florextech/reliability-fixture",
+  "name": "@florexlabs/reliability-fixture",
   "private": true,
   "type": "module",
   "scripts": {

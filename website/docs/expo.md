@@ -4,7 +4,7 @@ sidebar_position: 6
 
 # Expo and React Native
 
-`@florextech/storage-expo` provides an Expo SQLite adapter. It is separate from
+`@florexlabs/storage-expo` provides an Expo SQLite adapter. It is separate from
 Core so application code can choose its runtime integration without pulling
 Expo into the reliability state machine.
 
