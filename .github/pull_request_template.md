@@ -1,6 +1,10 @@
-## Summary
+## Problem
 
-<!-- Explain the behavior that changes and why. -->
+<!-- What concrete user, reliability, or maintenance problem does this solve? -->
+
+## Solution
+
+<!-- Explain the resulting behavior and the implementation choice. -->
 
 ## Validation
 
