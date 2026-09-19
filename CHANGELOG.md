@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+## 0.1.0-alpha.0 - 2026-09-19
+
 ### Added
 
 - Durable operation domain, SQLite stores, execution/retry/recovery and UNKNOWN verification.
