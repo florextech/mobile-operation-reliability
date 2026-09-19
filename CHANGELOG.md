@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+## 0.1.0-alpha.1 - 2026-09-19
+
+### Fixed
+
+- Build package artifacts before release packaging and publication.
+
 ## 0.1.0-alpha.0 - 2026-09-19
 
 ### Added
