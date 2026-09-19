@@ -1,6 +1,7 @@
 name: documentation
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'website/**'
@@ -41,12 +42,12 @@ jobs:
           DOCS_URL: https://${{ github.repository_owner }}.github.io
           DOCS_BASE_URL: /${{ github.event.repository.name }}/
       - uses: actions/upload-pages-artifact@v3
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         with:
           path: website/build
 
   deploy:
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:
