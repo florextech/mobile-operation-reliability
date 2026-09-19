@@ -1,5 +1,5 @@
-import { proposeAcceptance, sameIntent, transition } from '@florextech/core';
-import type { AcceptanceChange, AcceptanceResult, ClockPort, MutationRequest, MutationResult, Operation, OperationChange, OperationKey, OperationScope, OperationStatus, Page, PageQuery, PayloadLimits, ReadResult, StoragePort } from '@florextech/core';
+import { proposeAcceptance, sameIntent, transition } from '@florexlabs/core';
+import type { AcceptanceChange, AcceptanceResult, ClockPort, MutationRequest, MutationResult, Operation, OperationChange, OperationKey, OperationScope, OperationStatus, Page, PageQuery, PayloadLimits, ReadResult, StoragePort } from '@florexlabs/core';
 import type { SQLiteConnection, SqlRow } from './driver.js';
 import { decodeChange, decodeEvent, decodeOperation, encode } from './codec.js';
 import { ensure, mutationError, storageError } from './errors.js';

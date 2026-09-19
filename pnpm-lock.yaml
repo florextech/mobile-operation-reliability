@@ -33,13 +33,13 @@ importers:
 
   examples/expo-reliability-lab:
     dependencies:
-      '@florextech/core':
+      '@florexlabs/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@florextech/inspector':
+      '@florexlabs/inspector':
         specifier: workspace:*
         version: link:../../packages/inspector
-      '@florextech/storage-expo':
+      '@florexlabs/storage-expo':
         specifier: workspace:*
         version: link:../../packages/storage-expo
       expo:
@@ -70,13 +70,13 @@ importers:
 
   examples/expo-storefront:
     dependencies:
-      '@florextech/core':
+      '@florexlabs/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@florextech/inspector':
+      '@florexlabs/inspector':
         specifier: workspace:*
         version: link:../../packages/inspector
-      '@florextech/storage-expo':
+      '@florexlabs/storage-expo':
         specifier: workspace:*
         version: link:../../packages/storage-expo
       expo:
@@ -115,22 +115,22 @@ importers:
 
   packages/inspector:
     dependencies:
-      '@florextech/core':
+      '@florexlabs/core':
         specifier: workspace:*
         version: link:../core
 
   packages/storage-expo:
     dependencies:
-      '@florextech/core':
+      '@florexlabs/core':
         specifier: workspace:*
         version: link:../core
-      '@florextech/storage-sqlite':
+      '@florexlabs/storage-sqlite':
         specifier: workspace:*
         version: link:../storage-sqlite
 
   packages/storage-sqlite:
     dependencies:
-      '@florextech/core':
+      '@florexlabs/core':
         specifier: workspace:*
         version: link:../core
 

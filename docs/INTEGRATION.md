@@ -27,8 +27,8 @@ the REST mapping and scheduler wake-ups. The Core owns transitions and never
 imports Expo, React Native, fetch or a database driver.
 
 ```ts
-import { OperationEngine, OperationScheduler, operationId } from '@florextech/core';
-import { AsyncSQLiteOperationStore } from '@florextech/storage-expo';
+import { OperationEngine, OperationScheduler, operationId } from '@florexlabs/core';
+import { AsyncSQLiteOperationStore } from '@florexlabs/storage-expo';
 
 const scope = { principalScope: account.id, targetScope: 'production' };
 const limits = { maxBytes: 65_536, maxDepth: 32 };

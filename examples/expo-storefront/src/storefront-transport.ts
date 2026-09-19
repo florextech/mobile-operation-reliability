@@ -1,4 +1,4 @@
-import type { ExecutionResult, TransportContext, TransportPort, VerificationResult } from '@florextech/core';
+import type { ExecutionResult, TransportContext, TransportPort, VerificationResult } from '@florexlabs/core';
 
 export function createStorefrontTransport(baseUrl: string): TransportPort {
   const base = baseUrl.replace(/\/$/, '');

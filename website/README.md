@@ -3,8 +3,8 @@
 This public documentation site is built with Docusaurus.
 
 ```sh
-pnpm --filter @florextech/docs start
-pnpm --filter @florextech/docs build
+pnpm --filter @florexlabs/docs start
+pnpm --filter @florexlabs/docs build
 ```
 
 GitHub Actions builds pull requests and deploys the static `website/build`
