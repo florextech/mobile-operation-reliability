@@ -5,7 +5,7 @@
 
 - **Status:** Superseded by [ADR-009](009-minimal-operation-state-machine.md) on 2026-09-15
 - **Date:** 2026-09-15
-- **Decision owners:** FlorexTech
+- **Decision owners:** MOR
 - **Scope:** Core SDK
 
 ## Context

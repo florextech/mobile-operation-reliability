@@ -2,7 +2,7 @@
 
 - **Estado:** Accepted — implementado en Core; transport y runtime concretos pendientes.
 - **Fecha:** 2026-09-16
-- **Responsable:** FlorexTech
+- **Responsable:** MOR
 - **Sustituye:** Ninguno. Concreta ADR-010, ADR-011 y ADR-012.
 
 ## Contexto

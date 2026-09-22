@@ -4,6 +4,13 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+## 0.2.0-alpha.0 - 2026-09-22
+
+### Changed
+
+- Publish the SDK under the focused `@florexlabs/mor` package family: core, Expo, SQLite and inspector adapters.
+- Remove project branding from the public documentation and package metadata.
+
 ## 0.1.0-alpha.1 - 2026-09-19
 
 ### Fixed

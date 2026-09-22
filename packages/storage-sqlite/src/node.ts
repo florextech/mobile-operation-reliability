@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-import type { ClockPort, PayloadLimits } from '@florexlabs/core';
+import type { ClockPort, PayloadLimits } from '@florexlabs/mor';
 import type { SQLiteConnection, SqlValue } from './driver.js';
 import { SQLiteOperationStore } from './store.js';
 

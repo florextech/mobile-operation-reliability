@@ -2,7 +2,7 @@
 
 - **Estado:** Accepted — implementado y probado con SQLite real.
 - **Fecha:** 2026-09-16
-- **Responsable:** FlorexTech
+- **Responsable:** MOR
 - **Sustituye:** Ninguno. Concreta ADR-010.
 
 ## Contexto

@@ -1,5 +1,5 @@
-import type { Operation, OperationEvent, OperationKey, OperationScope, OperationStatus, Page, ReadResult } from '@florexlabs/core';
-import { snapshotJson } from '@florexlabs/core';
+import type { Operation, OperationEvent, OperationKey, OperationScope, OperationStatus, Page, ReadResult } from '@florexlabs/mor';
+import { snapshotJson } from '@florexlabs/mor';
 
 /** Every diagnostic list is scoped. A read-only tool must never turn an
  * operation inventory into a cross-principal data disclosure. */

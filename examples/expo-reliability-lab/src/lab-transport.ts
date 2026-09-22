@@ -1,4 +1,4 @@
-import type { ExecutionResult, TransportContext, TransportPort, VerificationResult } from '@florexlabs/core';
+import type { ExecutionResult, TransportContext, TransportPort, VerificationResult } from '@florexlabs/mor';
 
 export interface LabTransportOptions { readonly baseUrl: string; readonly fetch?: typeof globalThis.fetch; readonly now?: () => number }
 /** Maps only the fixture's documented business contract; HTTP alone is not general evidence. */

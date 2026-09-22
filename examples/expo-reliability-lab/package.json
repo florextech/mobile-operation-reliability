@@ -3,16 +3,16 @@
   "private": true,
   "main": "expo/AppEntry",
   "scripts": {
-    "start": "pnpm --filter @florexlabs/core build && pnpm --filter @florexlabs/storage-sqlite build && pnpm --filter @florexlabs/storage-expo build && expo start --clear",
+    "start": "pnpm --filter @florexlabs/mor build && pnpm --filter @florexlabs/mor-sqlite build && pnpm --filter @florexlabs/mor-expo build && expo start --clear",
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.mjs",
     "coverage": "c8 --all --include 'src/**/*.ts' --reporter lcov --reporter text --reporter json-summary node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@florexlabs/core": "workspace:*",
-    "@florexlabs/inspector": "workspace:*",
-    "@florexlabs/storage-expo": "workspace:*",
+    "@florexlabs/mor": "workspace:*",
+    "@florexlabs/mor-inspector": "workspace:*",
+    "@florexlabs/mor-expo": "workspace:*",
     "expo": "~57.0.24",
     "expo-network": "~57.0.2",
     "expo-sqlite": "~57.0.3",

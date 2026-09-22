@@ -1,10 +1,10 @@
 const config = {
-  title: 'FlorexTech MOR',
+  title: 'Mobile Operation Reliability',
   tagline: 'Durable business operations for mobile REST clients',
   favicon: 'img/favicon.svg',
   url: process.env.DOCS_URL ?? 'http://localhost:3000',
   baseUrl: process.env.DOCS_BASE_URL ?? '/',
-  organizationName: 'FlorexTech',
+  organizationName: 'MOR',
   projectName: 'mobile-operation-reliability',
   onBrokenLinks: 'throw',
   markdown: { hooks: { onBrokenMarkdownLinks: 'warn' } },
@@ -24,10 +24,9 @@ const config = {
   ],
   themeConfig: {
     navbar: {
-      title: 'FlorexTech MOR',
+      title: 'Mobile Operation Reliability',
       items: [
         { type: 'docSidebar', sidebarId: 'docs', position: 'left', label: 'Guides' },
-        { href: 'https://github.com/FlorexTech/mobile-operation-reliability', label: 'GitHub', position: 'right' },
       ],
     },
     footer: {
@@ -38,7 +37,7 @@ const config = {
           items: [{ label: 'Integration', to: '/integration' }, { label: 'Backend contract', to: '/backend-contract' }],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} FlorexTech.`,
+      copyright: `Copyright © ${new Date().getFullYear()} MOR.`,
     },
   },
 };

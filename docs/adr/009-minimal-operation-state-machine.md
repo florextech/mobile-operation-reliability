@@ -2,7 +2,7 @@
 
 - **Estado:** Accepted — diseño, pendiente de implementación y validación.
 - **Fecha:** 2026-09-15
-- **Responsable:** FlorexTech
+- **Responsable:** MOR
 - **Sustituye:** ADR-001 y ADR-003.
 
 ## Contexto

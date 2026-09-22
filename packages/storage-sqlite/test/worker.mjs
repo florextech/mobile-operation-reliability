@@ -1,7 +1,7 @@
 import process from 'node:process';
 import { createNodeSQLiteStore, NodeSQLiteConnection } from '../dist/node.js';
 import { SQLiteOperationStore } from '../dist/index.js';
-import { proposeAcceptance } from '@florexlabs/core';
+import { proposeAcceptance } from '@florexlabs/mor';
 import { input, limits, claimCommand, context } from '../../core/test/helpers.mjs';
 
 const [path, mode] = process.argv.slice(2);

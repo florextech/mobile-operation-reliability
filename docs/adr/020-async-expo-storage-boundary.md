@@ -2,7 +2,7 @@
 
 - **Estado:** Accepted — adapter implementado; conformidad móvil pendiente.
 - **Fecha:** 2026-09-16
-- **Responsable:** FlorexTech
+- **Responsable:** MOR
 
 ## Decisión
 

@@ -1,4 +1,4 @@
-# @florexlabs/core
+# @florexlabs/mor
 
 Portable TypeScript coordination for durable business Operations. The Core owns
 state transitions, retry eligibility, leases and uncertain outcomes; adapters
@@ -10,7 +10,7 @@ An Operation is a business intent such as `order.create`, not an HTTP request.
 claims the accepted record.
 
 ```ts
-import { OperationEngine, OperationScheduler, operationId } from '@florexlabs/core';
+import { OperationEngine, OperationScheduler, operationId } from '@florexlabs/mor';
 
 const handle = await engine.execute({
   id: operationId('stable-order-operation-id'),
@@ -31,7 +31,7 @@ completed it. `COMPLETED` requires backend evidence; a timeout or lost response
 can become `UNKNOWN` and must not be presented as failure.
 
 The package has no runtime dependency on React Native, Expo, SQLite, fetch,
-Axios, NetInfo or platform timers. `@florexlabs/core/testing` provides
+Axios, NetInfo or platform timers. `@florexlabs/mor/testing` provides
 `FakeTransport` and `ChaosTransport` for deterministic consumer tests.
 
 For the full backend contract, integration lifecycle and reliability limits,

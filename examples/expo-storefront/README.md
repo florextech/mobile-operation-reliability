@@ -1,5 +1,9 @@
 # Café Flores storefront
 
+This reference app demonstrates `@florexlabs/mor` and
+`@florexlabs/mor-expo`. It will consume their published packages after the
+first MOR release is available on npm.
+
 `expo-storefront` is a small reference application that shows an ordinary
 consumer flow, rather than a reliability test console. A customer selects
 coffee and pastry, then places a pickup order.

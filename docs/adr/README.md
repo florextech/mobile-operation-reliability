@@ -1,4 +1,4 @@
-# FlorexTech — Architecture Decision Records
+#  Architecture Decision Records
 
 [Arquitectura normativa](../../ARCHITECTURE.md). Los ADRs Accepted documentan decisiones de diseño; no afirman que exista implementación ni que las garantías estén verificadas. Los antecedentes se conservan para explicar cambios explícitos.
 

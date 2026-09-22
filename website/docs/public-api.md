@@ -6,10 +6,10 @@ sidebar_position: 5
 
 | Package | Public import |
 | --- | --- |
-| Core | `@florexlabs/core` and `@florexlabs/core/testing` |
-| SQLite storage | `@florexlabs/storage-sqlite` and `@florexlabs/storage-sqlite/node` |
-| Expo storage | `@florexlabs/storage-expo` |
-| Inspector | `@florexlabs/inspector` |
+| Core | `@florexlabs/mor` and `@florexlabs/mor/testing` |
+| SQLite storage | `@florexlabs/mor-sqlite` and `@florexlabs/mor-sqlite/node` |
+| Expo storage | `@florexlabs/mor-expo` |
+| Inspector | `@florexlabs/mor-inspector` |
 
 Use the Core types to define Operations, ports and transitions. Use the
 storage packages to supply the `StoragePort`; the application supplies its

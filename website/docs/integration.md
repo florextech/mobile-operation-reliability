@@ -9,8 +9,8 @@ mapping and scheduler wake-ups. The Core owns the Operation state machine and
 does not import React Native, Expo, a database driver or a network client.
 
 ```ts
-import { OperationEngine, OperationScheduler, operationId } from '@florexlabs/core';
-import { AsyncSQLiteOperationStore } from '@florexlabs/storage-expo';
+import { OperationEngine, OperationScheduler, operationId } from '@florexlabs/mor';
+import { AsyncSQLiteOperationStore } from '@florexlabs/mor-expo';
 
 const scope = { principalScope: account.id, targetScope: 'production' };
 const store = new AsyncSQLiteOperationStore(database, { wallNow: Date.now }, limits);

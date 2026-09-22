@@ -1,6 +1,6 @@
 import { AppState } from 'react-native';
 import * as Network from 'expo-network';
-import type { NetworkPort, NetworkState, OperationScheduler, Unsubscribe } from '@florexlabs/core';
+import type { NetworkPort, NetworkState, OperationScheduler, Unsubscribe } from '@florexlabs/mor';
 
 export class ExpoNetworkHint implements NetworkPort {
   private state: NetworkState;

@@ -5,7 +5,7 @@ slug: /
 
 # Mobile Operation Reliability
 
-FlorexTech MOR makes a business intent durable before a React Native or Expo
+Mobile Operation Reliability makes a business intent durable before a React Native or Expo
 application calls an existing REST API. An `order.create`, `payment.create` or
 `inventory.update` is an **Operation**: it is not an HTTP request.
 

@@ -57,10 +57,10 @@ jobs:
             }
           }
           EOF
-      - run: pnpm --filter @florexlabs/core pack --pack-destination ../../artifacts
-      - run: pnpm --filter @florexlabs/storage-sqlite pack --pack-destination ../../artifacts
-      - run: pnpm --filter @florexlabs/storage-expo pack --pack-destination ../../artifacts
-      - run: pnpm --filter @florexlabs/inspector pack --pack-destination ../../artifacts
+      - run: pnpm --filter @florexlabs/mor pack --pack-destination ../../artifacts
+      - run: pnpm --filter @florexlabs/mor-sqlite pack --pack-destination ../../artifacts
+      - run: pnpm --filter @florexlabs/mor-expo pack --pack-destination ../../artifacts
+      - run: pnpm --filter @florexlabs/mor-inspector pack --pack-destination ../../artifacts
       - uses: actions/upload-artifact@v4
         with:
           name: npm-packages-${{ inputs.version }}
@@ -85,19 +85,19 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @florexlabs/core publish --access public --no-git-checks --tag "$NPM_TAG"
+      - run: pnpm --filter @florexlabs/mor publish --access public --no-git-checks --tag "$NPM_TAG"
         env:
           NPM_TAG: ${{ inputs.npm_tag }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: pnpm --filter @florexlabs/storage-sqlite publish --access public --no-git-checks --tag "$NPM_TAG"
+      - run: pnpm --filter @florexlabs/mor-sqlite publish --access public --no-git-checks --tag "$NPM_TAG"
         env:
           NPM_TAG: ${{ inputs.npm_tag }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: pnpm --filter @florexlabs/storage-expo publish --access public --no-git-checks --tag "$NPM_TAG"
+      - run: pnpm --filter @florexlabs/mor-expo publish --access public --no-git-checks --tag "$NPM_TAG"
         env:
           NPM_TAG: ${{ inputs.npm_tag }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: pnpm --filter @florexlabs/inspector publish --access public --no-git-checks --tag "$NPM_TAG"
+      - run: pnpm --filter @florexlabs/mor-inspector publish --access public --no-git-checks --tag "$NPM_TAG"
         env:
           NPM_TAG: ${{ inputs.npm_tag }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
