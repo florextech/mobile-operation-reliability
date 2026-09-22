@@ -1,5 +1,5 @@
-import { assertOperationInvariants, canonicalJson, snapshotInput, snapshotJson } from '@florexlabs/core';
-import type { JsonValue, Operation, OperationChange, OperationEvent, PayloadLimits } from '@florexlabs/core';
+import { assertOperationInvariants, canonicalJson, snapshotInput, snapshotJson } from '@florexlabs/mor';
+import type { JsonValue, Operation, OperationChange, OperationEvent, PayloadLimits } from '@florexlabs/mor';
 import { ensure } from './errors.js';
 
 type Validator = (value: unknown) => void;

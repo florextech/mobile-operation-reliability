@@ -1,4 +1,4 @@
-# FlorexTech — Mobile Operation Reliability
+#  Mobile Operation Reliability
 
 **Estado:** especificación de arquitectura, sin implementación. **Fecha:** 2026-09-15.
 
@@ -385,7 +385,7 @@ No se implementan tests en esta entrega documental. Antes de publicar garantías
 | Coordination multi-device y failover entre stores | Requiere autoridad remota y otro modelo de ownership |
 | Archivos grandes, streaming y uploads resumibles | Necesitan durabilidad de blobs y protocolos específicos |
 | Migración automática del payload de negocio | Cambiar una intención ya aceptada exige un contrato de producto específico |
-| Cloud, proxy FlorexTech, DevTools completos y event sourcing | No son necesarios para ejecutar y recuperar intenciones |
+| Cloud proxy, DevTools completos y event sourcing | No son necesarios para ejecutar y recuperar intenciones |
 | GC automático, export/import y restauración de backups | Borrar o reintroducir IDs afecta deduplicación; exige contrato de retención separado |
 | Framework propio de cifrado, gestión de claves y OAuth | Se delega al runtime/app; sí son obligatorios aislamiento y minimización |
 | Adaptadores para otros protocolos/runtimes | Los puertos dejan el camino abierto; no se implementan sin demanda |

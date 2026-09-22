@@ -1,6 +1,7 @@
 {
-  "name": "@florexlabs/core",
-  "version": "0.1.0-alpha.1",
+  "name": "@florexlabs/mor",
+  "version": "0.2.0-alpha.0",
+  "description": "Durable business operation reliability for React Native and Expo.",
   "type": "module",
   "sideEffects": false,
   "exports": {

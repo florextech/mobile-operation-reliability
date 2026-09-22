@@ -1,13 +1,14 @@
 {
-  "name": "@florexlabs/storage-expo",
-  "version": "0.1.0-alpha.1",
+  "name": "@florexlabs/mor-expo",
+  "version": "0.2.0-alpha.0",
+  "description": "Expo SQLite storage adapter for @florexlabs/mor.",
   "type": "module",
   "sideEffects": false,
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
   "files": ["dist"],
   "dependencies": {
-    "@florexlabs/core": "workspace:*",
-    "@florexlabs/storage-sqlite": "workspace:*"
+    "@florexlabs/mor": "workspace:*",
+    "@florexlabs/mor-sqlite": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

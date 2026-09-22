@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { setTimeout as delay } from 'node:timers/promises';
 
-const projectKey = 'florextech-mobile-operation-reliability';
+const projectKey = 'mobile-operation-reliability';
 // The server is published only on loopback; use its local hostname consistently.
 const host = 'http://localhost:9000';
 const secretPath = '.sonar/local.json';
@@ -48,7 +48,7 @@ async function configure() {
   const validation = await api('authentication/validate');
   if (!validation.valid) await api('users/change_password', { login: 'admin', previousPassword: 'admin', password: secrets.adminPassword }, 'admin');
   const projects = await api(`projects/search?projects=${projectKey}`);
-  if (projects.components.length === 0) await api('projects/create', { project: projectKey, name: 'FlorexTech Mobile Operation Reliability', visibility: 'private' });
+  if (projects.components.length === 0) await api('projects/create', { project: projectKey, name: 'Mobile Operation Reliability', visibility: 'private' });
   await configureGate();
   if (!secrets.token) {
     const generated = await api('user_tokens/generate', { name: `mor-local-${randomBytes(6).toString('hex')}`, type: 'PROJECT_ANALYSIS_TOKEN', projectKey });
@@ -57,7 +57,7 @@ async function configure() {
   }
 }
 async function configureGate() {
-  const gateName = 'FlorexTech Strict';
+  const gateName = 'Mobile Operation Reliability Strict';
   const gates = await api('qualitygates/list');
   if (!gates.qualitygates.some(gate => gate.name === gateName)) {
     await api('qualitygates/copy', { sourceName: 'Sonar way', name: gateName });

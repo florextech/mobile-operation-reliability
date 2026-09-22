@@ -1,4 +1,4 @@
-# FlorexTech Mobile Operation Reliability
+# Mobile Operation Reliability
 
 Reliable business operations for React Native and Expo apps that call existing
 REST APIs. Persist an `order.create`, `payment.create` or `inventory.update`

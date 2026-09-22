@@ -2,7 +2,7 @@
   "name": "mobile-operation-reliability",
   "version": "1.0.0",
   "private": true,
-  "description": "FlorexTech Mobile Operation Reliability SDK",
+  "description": "Mobile Operation Reliability SDK",
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",

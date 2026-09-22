@@ -6,16 +6,16 @@ stable release. Import only package roots; do not deep-import `dist` files.
 
 | Package | Supported import | Purpose | Support level |
 | --- | --- | --- | --- |
-| `@florexlabs/core` | package root | Operation domain, ports, engine, scheduler and error types | Alpha public API |
-| `@florexlabs/core/testing` | testing subpath | `FakeTransport` and `ChaosTransport` for consumer tests | Test-only API |
-| `@florexlabs/storage-sqlite` | package root | `SQLiteOperationStore` and structural SQLite driver types | Alpha public API for Node-compatible SQLite drivers |
-| `@florexlabs/storage-sqlite/node` | Node subpath | `createNodeSQLiteStore` and `NodeSQLiteConnection` | Node-only development and test adapter |
-| `@florexlabs/storage-expo` | package root | `AsyncSQLiteOperationStore` and Expo SQLite structural types | Beta adapter; mobile conformance is incomplete |
-| `@florexlabs/inspector` | package root | Read-only scoped diagnostics and redaction | Alpha public API |
+| `@florexlabs/mor` | package root | Operation domain, ports, engine, scheduler and error types | Alpha public API |
+| `@florexlabs/mor/testing` | testing subpath | `FakeTransport` and `ChaosTransport` for consumer tests | Test-only API |
+| `@florexlabs/mor-sqlite` | package root | `SQLiteOperationStore` and structural SQLite driver types | Alpha public API for Node-compatible SQLite drivers |
+| `@florexlabs/mor-sqlite/node` | Node subpath | `createNodeSQLiteStore` and `NodeSQLiteConnection` | Node-only development and test adapter |
+| `@florexlabs/mor-expo` | package root | `AsyncSQLiteOperationStore` and Expo SQLite structural types | Beta adapter; mobile conformance is incomplete |
+| `@florexlabs/mor-inspector` | package root | Read-only scoped diagnostics and redaction | Alpha public API |
 
 ## Explicit exclusions
 
-`@florexlabs/storage-sqlite/records` is an internal compatibility bridge used
+`@florexlabs/mor-sqlite/records` is an internal compatibility bridge used
 by the Expo adapter. Applications must not import it. It is exported only so
 workspace packages can share the strict record codec without duplicating it;
 it has no compatibility commitment.

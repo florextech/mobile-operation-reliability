@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { proposeAcceptance } from '@florexlabs/core';
+import { proposeAcceptance } from '@florexlabs/mor';
 import { OperationInspector, redact } from '../dist/index.js';
 import { input, limits } from '../../core/test/helpers.mjs';
 

@@ -16,13 +16,13 @@ pnpm sonar:status
 - `sonar:status` consulta el último gate y sus métricas; guarda un reporte en `.sonar/report.json`.
 - `sonar:down` detiene los servicios y conserva volúmenes. No utiliza `down -v`.
 
-Dashboard: [FlorexTech Mobile Operation Reliability](http://localhost:9000/dashboard?id=florextech-mobile-operation-reliability).
+Dashboard: [Mobile Operation Reliability](http://localhost:9000/dashboard?id=mobile-operation-reliability).
 
 El usuario local es `admin`. La contraseña generada y el token del proyecto están en `.sonar/local.json`, con permisos 0600 y excluido de Git. El token se entrega al scanner por variable de entorno; no se incluye en propiedades ni argumentos. No compartir ese archivo. Conservar `.sonar` mientras se conservan los volúmenes, para mantener las credenciales correspondientes a esta instalación.
 
 ## Gate aplicado
 
-`FlorexTech Strict` conserva las condiciones de `Sonar way` y añade condiciones sobre todo el código:
+`Mobile Operation Reliability Strict` conserva las condiciones de `Sonar way` y añade condiciones sobre todo el código:
 
 | Métrica global | Requisito |
 |---|---|
@@ -52,7 +52,7 @@ SonarQube Community Build `26.9.0.129388`. Analysis ID: `646b67a1-3d46-49c8-b993
 
 | Check | Resultado |
 |---|---|
-| Quality Gate FlorexTech Strict | OK; todas las condiciones evaluadas pasan |
+| Quality Gate Mobile Operation Reliability Strict | OK; todas las condiciones evaluadas pasan |
 | Cobertura global Sonar | 98,9% |
 | Cobertura de código nuevo | 94,1% |
 | Duplicación global/nueva | 0% |

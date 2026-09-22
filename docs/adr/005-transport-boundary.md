@@ -5,7 +5,7 @@
 
 - **Status:** Superseded by [ADR-011](011-evidence-safe-retry-and-verification.md) on 2026-09-15
 - **Date:** 2026-09-15
-- **Decision owners:** FlorexTech
+- **Decision owners:** MOR
 
 ## Context
 

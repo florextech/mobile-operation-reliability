@@ -2,7 +2,7 @@
 
 - **Estado:** Accepted.
 - **Fecha:** 2026-09-18
-- **Responsable:** FlorexTech
+- **Responsable:** MOR
 
 ## Decisión
 

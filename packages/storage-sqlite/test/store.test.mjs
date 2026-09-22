@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { proposeAcceptance } from '@florexlabs/core';
+import { proposeAcceptance } from '@florexlabs/mor';
 import { SQLiteOperationStore } from '../dist/index.js';
 import { NodeSQLiteConnection } from '../dist/node.js';
 import { input, limits, claimCommand, context, resultCommand } from '../../core/test/helpers.mjs';
