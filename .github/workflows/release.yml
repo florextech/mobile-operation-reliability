@@ -17,6 +17,11 @@ on:
         required: true
         default: false
         type: boolean
+      deprecate_legacy:
+        description: Deprecate the legacy package names after their replacements are available
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -105,3 +110,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ inputs.version }}
+
+  deprecate-legacy:
+    if: inputs.deprecate_legacy
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Deprecate legacy package names
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm deprecate @florexlabs/core "Renamed to @florexlabs/mor. Please migrate to the MOR package family."
+          npm deprecate @florexlabs/storage-sqlite "Renamed to @florexlabs/mor-sqlite. Please migrate to the MOR package family."
+          npm deprecate @florexlabs/storage-expo "Renamed to @florexlabs/mor-expo. Please migrate to the MOR package family."
+          npm deprecate @florexlabs/inspector "Renamed to @florexlabs/mor-inspector. Please migrate to the MOR package family."
